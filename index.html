@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora Grados a Porcentaje</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .calculator-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
+            animation: slideIn 0.6s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            text-align: center;
+            color: #4a5568;
+            margin-bottom: 30px;
+            font-size: 2rem;
+            font-weight: 600;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #4a5568;
+            font-weight: 500;
+            font-size: 1.1rem;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            background: #f8fafc;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            background: white;
+        }
+
+        .convert-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 25px;
+        }
+
+        .convert-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .convert-btn:active {
+            transform: translateY(0);
+        }
+
+        .result {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: 600;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            opacity: 0;
+            transform: scale(0.9);
+            transition: all 0.4s ease;
+        }
+
+        .result.show {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .formula-info {
+            background: #f7fafc;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .formula-info h3 {
+            color: #4a5568;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .formula-info p {
+            color: #718096;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+
+        .examples {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .example {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+
+        .example-angle {
+            font-weight: 600;
+            color: #667eea;
+            font-size: 1.1rem;
+        }
+
+        .example-percent {
+            color: #4a5568;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 480px) {
+            .calculator-container {
+                padding: 30px 20px;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator-container">
+        <h1>🔢 Calculadora Grados a Porcentaje</h1>
+        
+        <div class="input-group">
+            <label for="degrees">Ingresa el ángulo en grados:</label>
+            <input type="number" id="degrees" placeholder="Ejemplo: 45" step="any" min="0" max="360">
+        </div>
+        
+        <button class="convert-btn" onclick="convertToPercentage()">
+            🔄 Convertir a Porcentaje
+        </button>
+        
+        <div class="result" id="result">
+            Ingresa un valor para ver el resultado
+        </div>
+        
+        <div class="formula-info">
+            <h3>📐 Información sobre la conversión</h3>
+            <p><strong>Fórmula:</strong> Porcentaje = (Grados ÷ 360) × 100</p>
+            <p>Esta calculadora convierte ángulos en grados a su equivalente porcentual de una vuelta completa (360°).</p>
+            
+            <div class="examples">
+                <div class="example">
+                    <div class="example-angle">90°</div>
+                    <div class="example-percent">25%</div>
+                </div>
+                <div class="example">
+                    <div class="example-angle">180°</div>
+                    <div class="example-percent">50%</div>
+                </div>
+                <div class="example">
+                    <div class="example-angle">270°</div>
+                    <div class="example-percent">75%</div>
+                </div>
+                <div class="example">
+                    <div class="example-angle">360°</div>
+                    <div class="example-percent">100%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function convertToPercentage() {
+            const degreesInput = document.getElementById('degrees');
+            const resultDiv = document.getElementById('result');
+            
+            const degrees = parseFloat(degreesInput.value);
+            
+            // Validar entrada
+            if (isNaN(degrees)) {
+                showResult('⚠️ Por favor, ingresa un número válido', '#ff6b6b');
+                return;
+            }
+            
+            if (degrees < 0) {
+                showResult('⚠️ El valor debe ser mayor o igual a 0', '#ff6b6b');
+                return;
+            }
+            
+            // Convertir grados a porcentaje
+            const percentage = (degrees / 360) * 100;
+            
+            // Determinar si es más de una vuelta completa
+            let resultText;
+            if (degrees <= 360) {
+                resultText = `${degrees}° = ${percentage.toFixed(2)}%`;
+            } else {
+                const fullTurns = Math.floor(degrees / 360);
+                const remainingDegrees = degrees % 360;
+                const remainingPercentage = (remainingDegrees / 360) * 100;
+                resultText = `${degrees}° = ${fullTurns} vuelta${fullTurns > 1 ? 's' : ''} completa${fullTurns > 1 ? 's' : ''} + ${remainingPercentage.toFixed(2)}%`;
+            }
+            
+            showResult(resultText, 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)');
+        }
+        
+        function showResult(text, background) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.background = background;
+            resultDiv.textContent = text;
+            resultDiv.classList.remove('show');
+            
+            // Pequeño delay para la animación
+            setTimeout(() => {
+                resultDiv.classList.add('show');
+            }, 100);
+        }
+        
+        // Permitir conversión con Enter
+        document.getElementById('degrees').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                convertToPercentage();
+            }
+        });
+        
+        // Conversión automática mientras se escribe (opcional)
+        document.getElementById('degrees').addEventListener('input', function() {
+            const value = this.value;
+            if (value && !isNaN(parseFloat(value))) {
+                // Pequeño delay para evitar conversiones excesivas
+                clearTimeout(this.autoConvertTimer);
+                this.autoConvertTimer = setTimeout(() => {
+                    convertToPercentage();
+                }, 500);
+            }
+        });
+    </script>
+</body>
+</html>
