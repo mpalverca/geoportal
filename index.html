@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geoportal - Registro de Afectaciones por Eventos Naturales en el Cantón Loja</title>
+    <title>Geoportal - Registro de Afectaciones por Eventos Naturales</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
     <style>
         * {
@@ -237,7 +237,7 @@
         <div class="header">
             <h1>🌍 Geoportal de Afectaciones Cantón Loja</h1>
             <p>Sistema de Registro y Monitoreo de Eventos Naturales y Antrópicos</p>
-            <p>Ing. Millan Paul Alverca</p>
+            <p>Coordinación de Gestión de Riesgos - Ing. Millan Paul Alverca</p>
         </div>
 
         <div class="stats">
@@ -259,71 +259,165 @@
             <div class="form-section">
                 <h2 class="section-title">📝 Registro de Evento</h2>
                 <form id="eventForm">
-                    <div class="form-group">
-                        <label for="tipoEvento">Tipo de Evento:</label>
-                        <select id="tipoEvento" required>
-                            <option value="">Seleccionar tipo...</option>
-                            <option value="lluvia">🌧️ Lluvia Intensa</option>
-                            <option value="sismo">🌋 Sismo</option>
-                            <option value="deslizamiento">⛰️ Movimiento en Masa</option>
-                            <option value="inundacion">🌊 Inundación</option>
-                            <option value="vendaval">💨 Vendaval</option>
-                            <option value="sequia">☀️ Sequía</option>
-                            <option value="incendio">🔥 Incendio Forestal</option>
-                        </select>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="coord_x">Coord X (UTM/Longitud):</label>
+                            <input type="number" id="coord_x" step="0.000001" placeholder="-79.0000" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="coord_y">Coord Y (UTM/Latitud):</label>
+                            <input type="number" id="coord_y" step="0.000001" placeholder="-4.0000" required>
+                        </div>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="fechaEvento">Fecha del Evento:</label>
-                            <input type="datetime-local" id="fechaEvento" required>
+                            <label for="fecha">Fecha:</label>
+                            <input type="datetime-local" id="fecha" required>
                         </div>
                         <div class="form-group">
-                            <label for="severidad">Severidad:</label>
-                            <select id="severidad" required>
+                            <label for="reporta">Reporta:</label>
+                            <input type="text" id="reporta" placeholder="Nombre del reportante" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="parroquia">Parroquia:</label>
+                            <select id="parroquia" required>
+                                <option value="">Seleccionar parroquia...</option>
+                                <option value="El Sagrario">El Sagrario</option>
+                                <option value="San Sebastián">San Sebastián</option>
+                                <option value="Sucre">Sucre</option>
+                                <option value="El Valle">El Valle</option>
+                                <option value="Malacatos">Malacatos</option>
+                                <option value="Vilcabamba">Vilcabamba</option>
+                                <option value="Quinara">Quinara</option>
+                                <option value="San Lucas">San Lucas</option>
+                                <option value="Santiago">Santiago</option>
+                                <option value="Chantaco">Chantaco</option>
+                                <option value="Chuquiribamba">Chuquiribamba</option>
+                                <option value="Gualel">Gualel</option>
+                                <option value="Jimbilla">Jimbilla</option>
+                                <option value="Taquil">Taquil</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="sector">Sector:</label>
+                            <input type="text" id="sector" placeholder="Ej: Centro, Barrio Las Flores..." required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="afectacion">Afectación:</label>
+                        <select id="afectacion" required>
+                            <option value="">Seleccionar tipo de afectación...</option>
+                            <option value="Viviendas">Viviendas</option>
+                            <option value="Infraestructura vial">Infraestructura vial</option>
+                            <option value="Servicios básicos">Servicios básicos</option>
+                            <option value="Centros educativos">Centros educativos</option>
+                            <option value="Centros de salud">Centros de salud</option>
+                            <option value="Agricultura">Agricultura</option>
+                            <option value="Ganadería">Ganadería</option>
+                            <option value="Comercio">Comercio</option>
+                            <option value="Medio ambiente">Medio ambiente</option>
+                            <option value="Otros">Otros</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="descripcion">Descripción:</label>
+                        <textarea id="descripcion" rows="3" placeholder="Describa detalladamente la afectación..." required></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="prioridad">Prioridad:</label>
+                            <select id="prioridad" required>
                                 <option value="">Seleccionar...</option>
-                                <option value="baja">🟢 Baja</option>
-                                <option value="media">🟡 Media</option>
-                                <option value="alta">🔴 Alta</option>
+                                <option value="Alta">🔴 Alta</option>
+                                <option value="Media">🟡 Media</option>
+                                <option value="Baja">🟢 Baja</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="clase_cooper">Clase Cooper:</label>
+                            <select id="clase_cooper" required>
+                                <option value="">Seleccionar clase...</option>
+                                <option value="Clase I">Clase I - Emergencia</option>
+                                <option value="Clase II">Clase II - Urgencia</option>
+                                <option value="Clase III">Clase III - Programable</option>
+                                <option value="Clase IV">Clase IV - Seguimiento</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="evento">Evento:</label>
+                            <select id="evento" required>
+                                <option value="">Seleccionar evento...</option>
+                                <option value="Lluvia intensa">🌧️ Lluvia intensa</option>
+                                <option value="Sismo">🌋 Sismo</option>
+                                <option value="Deslizamiento">⛰️ Deslizamiento</option>
+                                <option value="Inundación">🌊 Inundación</option>
+                                <option value="Vendaval">💨 Vendaval</option>
+                                <option value="Sequía">☀️ Sequía</option>
+                                <option value="Incendio forestal">🔥 Incendio forestal</option>
+                                <option value="Contaminación">🏭 Contaminación</option>
+                                <option value="Accidente vial">🚗 Accidente vial</option>
+                                <option value="Derrame">⚠️ Derrame</option>
+                                <option value="Otros">❓ Otros</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="depende">Depende:</label>
+                            <select id="depende">
+                                <option value="">Seleccionar institución...</option>
+                                <option value="GAD Loja">GAD Municipal Loja</option>
+                                <option value="COE">COE Cantonal</option>
+                                <option value="Bomberos">Cuerpo de Bomberos</option>
+                                <option value="Policía Nacional">Policía Nacional</option>
+                                <option value="ECU 911">ECU 911</option>
+                                <option value="MSP">Ministerio de Salud</option>
+                                <option value="MINEDUC">Ministerio de Educación</option>
+                                <option value="MTOP">MTOP</option>
+                                <option value="Otros">Otros</option>
                             </select>
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label for="ubicacion">Ubicación:</label>
-                        <input type="text" id="ubicacion" placeholder="Ej: Centro de la ciudad, Barrio Las Flores..." required>
+                        <label for="acciones">Acciones:</label>
+                        <textarea id="acciones" rows="2" placeholder="Acciones realizadas o por realizar..."></textarea>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="latitud">Latitud:</label>
-                            <input type="number" id="latitud" step="0.000001" placeholder="-4.0000" required>
+                            <label for="dimensiones">Dimensiones:</label>
+                            <input type="text" id="dimensiones" placeholder="Ej: 100m x 50m, diámetro 20m...">
                         </div>
                         <div class="form-group">
-                            <label for="longitud">Longitud:</label>
-                            <input type="number" id="longitud" step="0.000001" placeholder="-79.0000" required>
+                            <label for="vol">Volumen (m³):</label>
+                            <input type="number" id="vol" min="0" step="0.01" placeholder="0.00">
                         </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="afectaciones">Descripción de Afectaciones:</label>
-                        <textarea id="afectaciones" rows="3" placeholder="Describa las afectaciones, daños, personas afectadas..." required></textarea>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="personasAfectadas">Personas Afectadas:</label>
-                            <input type="number" id="personasAfectadas" min="0" placeholder="0">
+                            <label for="estado">Estado:</label>
+                            <select id="estado" required>
+                                <option value="">Seleccionar estado...</option>
+                                <option value="Pendiente">⏳ Pendiente</option>
+                                <option value="En proceso">🔄 En proceso</option>
+                                <option value="Resuelto">✅ Resuelto</option>
+                                <option value="Archivado">📁 Archivado</option>
+                            </select>
                         </div>
                         <div class="form-group">
-                            <label for="viviendasAfectadas">Viviendas Afectadas:</label>
-                            <input type="number" id="viviendasAfectadas" min="0" placeholder="0">
+                            <label for="informacion_afectados">Información Afectados:</label>
+                            <input type="text" id="informacion_afectados" placeholder="Número y tipo de afectados">
                         </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="reportadoPor">Reportado por:</label>
-                        <input type="text" id="reportadoPor" placeholder="Nombre del reportante" required>
                     </div>
 
                     <button type="submit" class="btn">🚀 Registrar Evento</button>
@@ -347,12 +441,14 @@
                     <thead>
                         <tr>
                             <th>Fecha</th>
-                            <th>Tipo</th>
-                            <th>Ubicación</th>
-                            <th>Severidad</th>
-                            <th>Personas</th>
-                            <th>Viviendas</th>
-                            <th>Reportado por</th>
+                            <th>Evento</th>
+                            <th>Parroquia</th>
+                            <th>Sector</th>
+                            <th>Afectación</th>
+                            <th>Prioridad</th>
+                            <th>Estado</th>
+                            <th>Clase Cooper</th>
+                            <th>Reporta</th>
                         </tr>
                     </thead>
                     <tbody id="eventosTableBody">
@@ -408,20 +504,20 @@
             const lat = e.latlng.lat.toFixed(6);
             const lng = e.latlng.lng.toFixed(6);
             
-            document.getElementById('latitud').value = lat;
-            document.getElementById('longitud').value = lng;
+            document.getElementById('coord_y').value = lat;
+            document.getElementById('coord_x').value = lng;
             
             // Crear marcador temporal
             L.marker([lat, lng])
                 .addTo(map)
-                .bindPopup(`Coordenadas seleccionadas:<br>Lat: ${lat}<br>Lng: ${lng}`)
+                .bindPopup(`Coordenadas seleccionadas:<br>Y (Lat): ${lat}<br>X (Lng): ${lng}`)
                 .openPopup();
         });
 
         // Función para actualizar estadísticas
         function actualizarEstadisticas() {
             const total = eventos.length;
-            const alta = eventos.filter(e => e.severidad === 'alta').length;
+            const alta = eventos.filter(e => e.prioridad === 'Alta').length;
             const estesMes = eventos.filter(e => {
                 const fecha = new Date(e.fecha);
                 const ahora = new Date();
@@ -436,22 +532,29 @@
 
         // Función para agregar marcador al mapa
         function agregarMarcador(evento) {
-            const marker = L.marker([evento.latitud, evento.longitud], {
-                icon: createCustomIcon(evento.tipo, evento.severidad)
+            const marker = L.marker([evento.coord_y, evento.coord_x], {
+                icon: createCustomIcon(evento.evento, evento.prioridad.toLowerCase())
             });
 
             const fechaFormateada = new Date(evento.fecha).toLocaleString('es-ES');
             
             marker.bindPopup(`
-                <div style="min-width: 250px;">
-                    <h3>${iconos[evento.tipo]} ${evento.tipo.charAt(0).toUpperCase() + evento.tipo.slice(1)}</h3>
+                <div style="min-width: 300px;">
+                    <h3>${evento.evento}</h3>
                     <p><strong>Fecha:</strong> ${fechaFormateada}</p>
-                    <p><strong>Ubicación:</strong> ${evento.ubicacion}</p>
-                    <p><strong>Severidad:</strong> ${evento.severidad}</p>
-                    <p><strong>Afectaciones:</strong> ${evento.afectaciones}</p>
-                    <p><strong>Personas afectadas:</strong> ${evento.personasAfectadas}</p>
-                    <p><strong>Viviendas afectadas:</strong> ${evento.viviendasAfectadas}</p>
-                    <p><strong>Reportado por:</strong> ${evento.reportadoPor}</p>
+                    <p><strong>Parroquia:</strong> ${evento.parroquia}</p>
+                    <p><strong>Sector:</strong> ${evento.sector}</p>
+                    <p><strong>Afectación:</strong> ${evento.afectacion}</p>
+                    <p><strong>Descripción:</strong> ${evento.descripcion}</p>
+                    <p><strong>Prioridad:</strong> ${evento.prioridad}</p>
+                    <p><strong>Clase Cooper:</strong> ${evento.clase_cooper}</p>
+                    <p><strong>Estado:</strong> ${evento.estado}</p>
+                    <p><strong>Dimensiones:</strong> ${evento.dimensiones || 'N/A'}</p>
+                    <p><strong>Volumen:</strong> ${evento.vol ? evento.vol + ' m³' : 'N/A'}</p>
+                    <p><strong>Información Afectados:</strong> ${evento.informacion_afectados || 'N/A'}</p>
+                    <p><strong>Reporta:</strong> ${evento.reporta}</p>
+                    <p><strong>Depende:</strong> ${evento.depende || 'N/A'}</p>
+                    ${evento.acciones ? `<p><strong>Acciones:</strong> ${evento.acciones}</p>` : ''}
                 </div>
             `);
 
@@ -467,15 +570,17 @@
                 const row = tbody.insertRow();
                 const fechaFormateada = new Date(evento.fecha).toLocaleString('es-ES');
                 
-                row.className = `severity-${evento.severidad}`;
+                row.className = `severity-${evento.prioridad.toLowerCase()}`;
                 row.innerHTML = `
                     <td>${fechaFormateada}</td>
-                    <td>${iconos[evento.tipo]} ${evento.tipo.charAt(0).toUpperCase() + evento.tipo.slice(1)}</td>
-                    <td>${evento.ubicacion}</td>
-                    <td>${evento.severidad.charAt(0).toUpperCase() + evento.severidad.slice(1)}</td>
-                    <td>${evento.personasAfectadas}</td>
-                    <td>${evento.viviendasAfectadas}</td>
-                    <td>${evento.reportadoPor}</td>
+                    <td>${evento.evento}</td>
+                    <td>${evento.parroquia}</td>
+                    <td>${evento.sector}</td>
+                    <td>${evento.afectacion}</td>
+                    <td>${evento.prioridad}</td>
+                    <td>${evento.estado}</td>
+                    <td>${evento.clase_cooper}</td>
+                    <td>${evento.reporta}</td>
                 `;
             });
         }
@@ -486,16 +591,23 @@
             
             const evento = {
                 id: Date.now(),
-                tipo: document.getElementById('tipoEvento').value,
-                fecha: document.getElementById('fechaEvento').value,
-                severidad: document.getElementById('severidad').value,
-                ubicacion: document.getElementById('ubicacion').value,
-                latitud: parseFloat(document.getElementById('latitud').value),
-                longitud: parseFloat(document.getElementById('longitud').value),
-                afectaciones: document.getElementById('afectaciones').value,
-                personasAfectadas: parseInt(document.getElementById('personasAfectadas').value) || 0,
-                viviendasAfectadas: parseInt(document.getElementById('viviendasAfectadas').value) || 0,
-                reportadoPor: document.getElementById('reportadoPor').value
+                coord_x: parseFloat(document.getElementById('coord_x').value),
+                coord_y: parseFloat(document.getElementById('coord_y').value),
+                fecha: document.getElementById('fecha').value,
+                reporta: document.getElementById('reporta').value,
+                parroquia: document.getElementById('parroquia').value,
+                sector: document.getElementById('sector').value,
+                afectacion: document.getElementById('afectacion').value,
+                descripcion: document.getElementById('descripcion').value,
+                prioridad: document.getElementById('prioridad').value,
+                clase_cooper: document.getElementById('clase_cooper').value,
+                evento: document.getElementById('evento').value,
+                depende: document.getElementById('depende').value,
+                acciones: document.getElementById('acciones').value,
+                dimensiones: document.getElementById('dimensiones').value,
+                vol: parseFloat(document.getElementById('vol').value) || 0,
+                estado: document.getElementById('estado').value,
+                informacion_afectados: document.getElementById('informacion_afectados').value
             };
 
             eventos.push(evento);
@@ -510,7 +622,7 @@
             alert('✅ Evento registrado exitosamente!');
             
             // Centrar mapa en el nuevo evento
-            map.setView([evento.latitud, evento.longitud], 15);
+            map.setView([evento.coord_y, evento.coord_x], 15);
         });
 
         // Inicializar fecha actual
