@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Geoportal - Registro de Afectaciones por Eventos Naturales</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
             margin: 0;
@@ -50,17 +51,30 @@
 
         .main-content {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr 2fr; /* 1/3 para formulario, 2/3 para mapa */
             gap: 30px;
             margin-bottom: 30px;
+            height: 600px; /* Altura fija para ambos elementos */
         }
 
-        .form-section, .map-section {
+        .form-section {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
             border-radius: 20px;
-            padding: 30px;
+            padding: 20px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow-y: auto; /* Scroll si el contenido es muy largo */
+        }
+
+        .map-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
         }
 
         .section-title {
@@ -72,7 +86,7 @@
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
 
         .form-group label {
@@ -80,15 +94,16 @@
             margin-bottom: 8px;
             font-weight: 600;
             color: #555;
+            font-size: 0.9em;
         }
 
         .form-group input,
         .form-group select,
         .form-group textarea {
             width: 100%;
-            padding: 12px 15px;
+            padding: 10px 12px;
             border: 2px solid #e1e5e9;
-            border-radius: 10px;
+            border-radius: 8px;
             font-size: 14px;
             transition: all 0.3s ease;
             background: white;
@@ -100,37 +115,39 @@
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-            transform: translateY(-2px);
         }
 
         .form-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 15px;
+            gap: 10px;
         }
 
         .btn {
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
-            padding: 15px 30px;
+            padding: 12px 25px;
             border: none;
             border-radius: 50px;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+            width: 100%;
+            margin-top: 10px;
         }
 
         .btn:hover {
-            transform: translateY(-3px);
+            transform: translateY(-2px);
             box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
         }
 
         #map {
-            height: 400px;
+            height: 100%;
             border-radius: 15px;
             border: 3px solid #e1e5e9;
+            flex-grow: 1;
         }
 
         .data-section {
@@ -139,6 +156,7 @@
             border-radius: 20px;
             padding: 30px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            margin-top: 30px;
         }
 
         .table-container {
@@ -156,9 +174,10 @@
         }
 
         th, td {
-            padding: 15px;
+            padding: 12px;
             text-align: left;
             border-bottom: 1px solid #e1e5e9;
+            font-size: 0.9em;
         }
 
         th {
@@ -177,10 +196,10 @@
 
         .coordinates-info {
             background: rgba(102, 126, 234, 0.1);
-            padding: 15px;
-            border-radius: 10px;
+            padding: 12px;
+            border-radius: 8px;
             margin-top: 15px;
-            font-size: 14px;
+            font-size: 13px;
         }
 
         .stats {
@@ -193,7 +212,7 @@
         .stat-card {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
-            padding: 25px;
+            padding: 20px;
             border-radius: 15px;
             text-align: center;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
@@ -201,11 +220,11 @@
         }
 
         .stat-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-3px);
         }
 
         .stat-number {
-            font-size: 2.5em;
+            font-size: 2em;
             font-weight: bold;
             background: linear-gradient(135deg, #667eea, #764ba2);
             -webkit-background-clip: text;
@@ -214,20 +233,46 @@
 
         .stat-label {
             color: #666;
-            margin-top: 10px;
+            margin-top: 8px;
+            font-size: 0.9em;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(102, 126, 234, 0.3);
+            border-radius: 50%;
+            border-top-color: #667eea;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 992px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+            
+            #map {
+                height: 400px;
+            }
         }
 
         @media (max-width: 768px) {
-            .main-content {
-                grid-template-columns: 1fr;
-            }
-            
             .form-row {
                 grid-template-columns: 1fr;
             }
             
             .header h1 {
                 font-size: 2em;
+            }
+            
+            .stats {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -313,8 +358,13 @@
                         <select id="afectacion" required>
                             <option value="">Seleccionar tipo de afectación...</option>
                             <option value="Viviendas">Viviendas</option>
+                            <option value="Predio vacio">Predio vacio</option>
+                            <option value="Área verde">Área verde</option>                            
+                            <option value="Equipamento público">Equipamento público</option>
                             <option value="Infraestructura vial">Infraestructura vial</option>
-                            <option value="Servicios básicos">Servicios básicos</option>
+                            <option value="Servicios básicos-AAPP">Servicios básicos-AAPP</option>                            
+                            <option value="Servicios básicos-AALL">Servicios básicos-AALL</option>                           
+                            <option value="Servicios básicos-AASS">Servicios básicos-AASS</option>
                             <option value="Centros educativos">Centros educativos</option>
                             <option value="Centros de salud">Centros de salud</option>
                             <option value="Agricultura">Agricultura</option>
@@ -344,10 +394,14 @@
                             <label for="clase_cooper">Clase Cooper:</label>
                             <select id="clase_cooper" required>
                                 <option value="">Seleccionar clase...</option>
-                                <option value="Clase I">Clase I - Emergencia</option>
-                                <option value="Clase II">Clase II - Urgencia</option>
-                                <option value="Clase III">Clase III - Programable</option>
-                                <option value="Clase IV">Clase IV - Seguimiento</option>
+                                <option value="Clase 0">Clase 0 - No visible desde el exterior</option>
+                                <option value="Clase I">Clase I - Grietas finas</option>
+                                <option value="Clase II">Clase II - Daño No visible desde el exterior</option>
+                                <option value="Clase III">Clase III - Grietas Reparables</option>
+                                <option value="Clase IV">Clase IV - Daños extenso, reparar o reponer elementos</option>                                
+                                <option value="Clase V">Clase V - Daño a elementos estructurales</option>                                
+                                <option value="Clase VI">Clase VI - Colapso parcial</option>                                
+                                <option value="Clase VII">Clase VII - Colapso total</option>
                             </select>
                         </div>
                     </div>
@@ -375,7 +429,7 @@
                             <select id="depende">
                                 <option value="">Seleccionar institución...</option>
                                 <option value="GAD Loja">GAD Municipal Loja</option>
-                                <option value="COE">COE Cantonal</option>
+                                <option value="UMAPAL">UMAPAL</option>
                                 <option value="Bomberos">Cuerpo de Bomberos</option>
                                 <option value="Policía Nacional">Policía Nacional</option>
                                 <option value="ECU 911">ECU 911</option>
@@ -420,7 +474,7 @@
                         </div>
                     </div>
 
-                    <button type="submit" class="btn">🚀 Registrar Evento</button>
+                    <button type="submit" class="btn" id="submitBtn">🚀 Registrar Evento</button>
                 </form>
 
                 <div class="coordinates-info">
@@ -452,6 +506,11 @@
                         </tr>
                     </thead>
                     <tbody id="eventosTableBody">
+                        <tr>
+                            <td colspan="9" style="text-align: center;">
+                                <div class="loading"></div> Cargando datos...
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -460,6 +519,12 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
     <script>
+        // Configuración de Supabase
+        const supabaseUrl = 'https://zpllugprxjqohnmxhizq.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwbGx1Z3ByeGpxb2hubXhoaXpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEzMjk0NTYsImV4cCI6MjA2NjkwNTQ1Nn0.wKZ1AgPUZMy178r75N2frJlJl6wbkrjCOk4m4MVqmEs';
+        
+        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
         // Inicialización del mapa centrado en Loja, Ecuador
         const map = L.map('map').setView([-3.9939, -79.2042], 13);
         
@@ -467,26 +532,30 @@
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
-        // Almacenamiento de eventos (en memoria)
+        // Almacenamiento de eventos
         let eventos = [];
         let markerGroup = L.layerGroup().addTo(map);
 
         // Configuración de iconos por tipo de evento
         const iconos = {
-            lluvia: '🌧️',
-            sismo: '🌋',
-            deslizamiento: '⛰️',
-            inundacion: '🌊',
-            vendaval: '💨',
-            sequia: '☀️',
-            incendio: '🔥'
+            'Lluvia intensa': '🌧️',
+            'Sismo': '🌋',
+            'Deslizamiento': '⛰️',
+            'Inundación': '🌊',
+            'Vendaval': '💨',
+            'Sequía': '☀️',
+            'Incendio forestal': '🔥',
+            'Contaminación': '🏭',
+            'Accidente vial': '🚗',
+            'Derrame': '⚠️',
+            'Otros': '❓'
         };
 
         // Función para crear marcador personalizado
         function createCustomIcon(tipo, severidad) {
             const emoji = iconos[tipo] || '📍';
-            const color = severidad === 'alta' ? '#dc3545' : 
-                         severidad === 'media' ? '#ffc107' : '#28a745';
+            const color = severidad === 'Alta' ? '#dc3545' : 
+                         severidad === 'Media' ? '#ffc107' : '#28a745';
             
             return L.divIcon({
                 html: `<div style="background: ${color}; border-radius: 50%; width: 40px; height: 40px; 
@@ -507,8 +576,17 @@
             document.getElementById('coord_y').value = lat;
             document.getElementById('coord_x').value = lng;
             
+            // Limpiar marcadores temporales
+            map.eachLayer(layer => {
+                if (layer instanceof L.Marker && layer.isTemporary) {
+                    map.removeLayer(layer);
+                }
+            });
+            
             // Crear marcador temporal
-            L.marker([lat, lng])
+            const tempMarker = L.marker([lat, lng], {
+                isTemporary: true
+            })
                 .addTo(map)
                 .bindPopup(`Coordenadas seleccionadas:<br>Y (Lat): ${lat}<br>X (Lng): ${lng}`)
                 .openPopup();
@@ -518,28 +596,28 @@
         function actualizarEstadisticas() {
             const total = eventos.length;
             const alta = eventos.filter(e => e.prioridad === 'Alta').length;
-            const estesMes = eventos.filter(e => {
-                const fecha = new Date(e.fecha);
+            const esteMes = eventos.filter(e => {
+                const fechaEvento = new Date(e.fecha);
                 const ahora = new Date();
-                return fecha.getMonth() === ahora.getMonth() && 
-                       fecha.getFullYear() === ahora.getFullYear();
+                return fechaEvento.getMonth() === ahora.getMonth() && 
+                       fechaEvento.getFullYear() === ahora.getFullYear();
             }).length;
 
             document.getElementById('totalEventos').textContent = total;
             document.getElementById('eventosAlta').textContent = alta;
-            document.getElementById('eventosMes').textContent = estesMes;
+            document.getElementById('eventosMes').textContent = esteMes;
         }
 
         // Función para agregar marcador al mapa
         function agregarMarcador(evento) {
             const marker = L.marker([evento.coord_y, evento.coord_x], {
-                icon: createCustomIcon(evento.evento, evento.prioridad.toLowerCase())
+                icon: createCustomIcon(evento.evento, evento.prioridad)
             });
 
             const fechaFormateada = new Date(evento.fecha).toLocaleString('es-ES');
             
-            marker.bindPopup(`
-                <div style="min-width: 300px;">
+            marker.bindPopup(
+                `<div style="min-width: 300px;">
                     <h3>${evento.evento}</h3>
                     <p><strong>Fecha:</strong> ${fechaFormateada}</p>
                     <p><strong>Parroquia:</strong> ${evento.parroquia}</p>
@@ -555,8 +633,8 @@
                     <p><strong>Reporta:</strong> ${evento.reporta}</p>
                     <p><strong>Depende:</strong> ${evento.depende || 'N/A'}</p>
                     ${evento.acciones ? `<p><strong>Acciones:</strong> ${evento.acciones}</p>` : ''}
-                </div>
-            `);
+                </div>`
+            );
 
             markerGroup.addLayer(marker);
         }
@@ -565,6 +643,15 @@
         function actualizarTabla() {
             const tbody = document.getElementById('eventosTableBody');
             tbody.innerHTML = '';
+
+            if (eventos.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="9" style="text-align: center;">No hay eventos registrados</td>
+                    </tr>
+                `;
+                return;
+            }
 
             eventos.forEach(evento => {
                 const row = tbody.insertRow();
@@ -585,12 +672,47 @@
             });
         }
 
+        // Cargar eventos desde Supabase
+        async function cargarEventos() {
+            try {
+                const { data, error } = await supabase
+                    .from('eventos')
+                    .select('*')
+                    .order('fecha', { ascending: false });
+                
+                if (error) throw error;
+                
+                eventos = data;
+                actualizarTabla();
+                actualizarEstadisticas();
+                
+                // Limpiar marcadores anteriores
+                markerGroup.clearLayers();
+                
+                // Agregar marcadores para cada evento
+                eventos.forEach(agregarMarcador);
+                
+            } catch (error) {
+                console.error('Error al cargar eventos:', error);
+                document.getElementById('eventosTableBody').innerHTML = `
+                    <tr>
+                        <td colspan="9" style="text-align: center; color: #dc3545;">
+                            Error al cargar los datos. Intente recargar la página.
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
         // Manejo del formulario
-        document.getElementById('eventForm').addEventListener('submit', function(e) {
+        document.getElementById('eventForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="loading"></span> Guardando...';
+            
             const evento = {
-                id: Date.now(),
                 coord_x: parseFloat(document.getElementById('coord_x').value),
                 coord_y: parseFloat(document.getElementById('coord_y').value),
                 fecha: document.getElementById('fecha').value,
@@ -605,31 +727,53 @@
                 depende: document.getElementById('depende').value,
                 acciones: document.getElementById('acciones').value,
                 dimensiones: document.getElementById('dimensiones').value,
-                vol: parseFloat(document.getElementById('vol').value) || 0,
+                vol: parseFloat(document.getElementById('vol').value) || null,
                 estado: document.getElementById('estado').value,
-                informacion_afectados: document.getElementById('informacion_afectados').value
+                informacion_afectados: document.getElementById('informacion_afectados').value,
+                created_at: new Date().toISOString()
             };
 
-            eventos.push(evento);
-            agregarMarcador(evento);
-            actualizarTabla();
-            actualizarEstadisticas();
-            
-            // Limpiar formulario
-            this.reset();
-            
-            // Mostrar confirmación
-            alert('✅ Evento registrado exitosamente!');
-            
-            // Centrar mapa en el nuevo evento
-            map.setView([evento.coord_y, evento.coord_x], 15);
+            try {
+                // Insertar en Supabase
+                const { data, error } = await supabase
+                    .from('eventos')
+                    .insert([evento])
+                    .select();
+                
+                if (error) throw error;
+                
+                // Agregar a la lista local
+                const nuevoEvento = data[0];
+                eventos.unshift(nuevoEvento);
+                
+                // Actualizar UI
+                agregarMarcador(nuevoEvento);
+                actualizarTabla();
+                actualizarEstadisticas();
+                
+                // Limpiar formulario
+                this.reset();
+                
+                // Mostrar confirmación
+                alert('✅ Evento registrado exitosamente!');
+                
+                // Centrar mapa en el nuevo evento
+                map.setView([nuevoEvento.coord_y, nuevoEvento.coord_x], 15);
+                
+            } catch (error) {
+                console.error('Error al guardar evento:', error);
+                alert('❌ Error al registrar el evento. Por favor intente nuevamente.');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '🚀 Registrar Evento';
+            }
         });
 
         // Inicializar fecha actual
-        document.getElementById('fechaEvento').value = new Date().toISOString().slice(0, 16);
+        document.getElementById('fecha').valueAsDate = new Date();
         
-        // Actualizar estadísticas iniciales
-        actualizarEstadisticas();
+        // Cargar eventos al iniciar
+        document.addEventListener('DOMContentLoaded', cargarEventos);
     </script>
 </body>
 </html>
