@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geoportal - Registro de Afectaciones por Eventos Naturales</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <title>Geoportal de Afectaciones Cantón Loja</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
     <style>
         * {
             margin: 0;
@@ -16,764 +15,802 @@
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
             color: #333;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
+            min-height: 100vh;
         }
 
         .header {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 20px;
             text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            border-bottom: 3px solid #e74c3c;
         }
 
         .header h1 {
             font-size: 2.5em;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
             margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
         }
 
         .header p {
-            color: #666;
             font-size: 1.1em;
+            margin-bottom: 5px;
+            opacity: 0.9;
         }
 
-        .main-content {
-            display: grid;
-            grid-template-columns: 1fr 2fr; /* 1/3 para formulario, 2/3 para mapa */
-            gap: 30px;
-            margin-bottom: 30px;
-            height: 600px; /* Altura fija para ambos elementos */
-        }
-
-        .form-section {
+        .toolbar {
             background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            overflow-y: auto; /* Scroll si el contenido es muy largo */
-        }
-
-        .map-section {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            height: 100%;
+            padding: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             display: flex;
-            flex-direction: column;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+            justify-content: center;
         }
 
-        .section-title {
-            font-size: 1.5em;
-            margin-bottom: 20px;
-            color: #667eea;
-            border-bottom: 3px solid #667eea;
-            padding-bottom: 10px;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #555;
-            font-size: 0.9em;
-        }
-
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-            width: 100%;
-            padding: 10px 12px;
-            border: 2px solid #e1e5e9;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: all 0.3s ease;
-            background: white;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+        .toolbar-group {
+            display: flex;
+            align-items: center;
             gap: 10px;
         }
 
+        .toolbar-group label {
+            font-weight: bold;
+            color: #2c3e50;
+            white-space: nowrap;
+        }
+
+        .toolbar-group select,
+        .toolbar-group input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
         .btn {
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: linear-gradient(45deg, #3498db, #2980b9);
             color: white;
-            padding: 12px 25px;
+            padding: 8px 16px;
             border: none;
-            border-radius: 50px;
-            font-size: 15px;
-            font-weight: 600;
+            border-radius: 5px;
             cursor: pointer;
+            font-size: 14px;
             transition: all 0.3s ease;
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
-            width: 100%;
-            margin-top: 10px;
+            white-space: nowrap;
         }
 
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
         }
 
-        #map {
-            height: 100%;
-            border-radius: 15px;
-            border: 3px solid #e1e5e9;
-            flex-grow: 1;
+        .btn-secondary {
+            background: linear-gradient(45deg, #95a5a6, #7f8c8d);
         }
 
-        .data-section {
+        .btn-danger {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+        }
+
+        .main-container {
+            display: flex;
+            height: calc(100vh - 200px);
+            position: relative;
+        }
+
+        .sidebar {
+            width: 320px;
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            margin-top: 30px;
-        }
-
-        .table-container {
-            overflow-x: auto;
-            margin-top: 20px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-        }
-
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #e1e5e9;
-            font-size: 0.9em;
-        }
-
-        th {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            font-weight: 600;
-        }
-
-        tr:hover {
-            background: rgba(102, 126, 234, 0.05);
-        }
-
-        .severity-alta { background: rgba(220, 53, 69, 0.1); }
-        .severity-media { background: rgba(255, 193, 7, 0.1); }
-        .severity-baja { background: rgba(40, 167, 69, 0.1); }
-
-        .coordinates-info {
-            background: rgba(102, 126, 234, 0.1);
-            padding: 12px;
-            border-radius: 8px;
-            margin-top: 15px;
-            font-size: 13px;
-        }
-
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .stat-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 20px;
-            border-radius: 15px;
-            text-align: center;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border-right: 1px solid #ddd;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
             transition: transform 0.3s ease;
         }
 
-        .stat-card:hover {
-            transform: translateY(-3px);
+        .sidebar.collapsed {
+            transform: translateX(-100%);
         }
 
-        .stat-number {
-            font-size: 2em;
-            font-weight: bold;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        .sidebar-header {
+            padding: 20px;
+            background: linear-gradient(135deg, #34495e, #2c3e50);
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
-        .stat-label {
-            color: #666;
-            margin-top: 8px;
+        .sidebar-header h3 {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sidebar-content {
+            padding: 20px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #3498db;
+        }
+
+        .stat-card h4 {
+            color: #2c3e50;
+            margin-bottom: 5px;
             font-size: 0.9em;
         }
 
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(102, 126, 234, 0.3);
+        .stat-card .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #e74c3c;
+        }
+
+        .legend {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .legend h4 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            padding: 5px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .legend-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .legend-marker {
+            width: 16px;
+            height: 16px;
             border-radius: 50%;
-            border-top-color: #667eea;
-            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+            border: 2px solid #fff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        .legend-text {
+            font-size: 0.9em;
+            flex: 1;
+        }
+
+        .legend-count {
+            font-weight: bold;
+            color: #7f8c8d;
+            background: #ecf0f1;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 0.8em;
+        }
+
+        .map-container {
+            flex: 1;
+            position: relative;
+            background: #f8f9fa;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        .map-controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .map-control-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #ddd;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .map-control-btn:hover {
+            background: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .loading-overlay.hidden {
+            display: none;
+        }
+
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin-right: 15px;
         }
 
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
-        @media (max-width: 992px) {
-            .main-content {
-                grid-template-columns: 1fr;
-                height: auto;
-            }
-            
-            #map {
-                height: 400px;
-            }
+        .popup-content {
+            max-width: 350px;
+            font-size: 14px;
+        }
+
+        .popup-content h3 {
+            color: #2c3e50;
+            margin-bottom: 12px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .popup-content .info-grid {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 5px 10px;
+            margin-bottom: 10px;
+        }
+
+        .popup-content .info-label {
+            font-weight: bold;
+            color: #7f8c8d;
+        }
+
+        .popup-content .info-value {
+            color: #2c3e50;
+        }
+
+        .popup-content .description {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            border-left: 3px solid #3498db;
+            margin-top: 10px;
+        }
+
+        .error-message {
+            background: #fee;
+            border: 1px solid #fcc;
+            color: #c00;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+
+        .toggle-sidebar {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #ddd;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .toggle-sidebar:hover {
+            background: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
 
         @media (max-width: 768px) {
-            .form-row {
-                grid-template-columns: 1fr;
+            .toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .toolbar-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .sidebar {
+                width: 100%;
+                position: absolute;
+                z-index: 1000;
+                height: 100%;
             }
             
             .header h1 {
-                font-size: 2em;
+                font-size: 1.8em;
             }
             
-            .stats {
+            .stats-grid {
                 grid-template-columns: 1fr;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🌍 Geoportal de Afectaciones Cantón Loja</h1>
-            <p>Sistema de Registro y Monitoreo de Eventos Naturales y Antrópicos</p>
-            <p>Coordinación de Gestión de Riesgos - Ing. Millan Paul Alverca</p>
+    <div class="header">
+        <h1>🌍 Geoportal de Afectaciones Cantón Loja</h1>
+        <p>Sistema de Registro y Monitoreo de Eventos Naturales y Antrópicos</p>
+        <p>Coordinación de Gestión de Riesgos - Ing. Millan Paul Alverca</p>
+    </div>
+
+    <div class="toolbar">
+        <div class="toolbar-group">
+            <label>🔍 Tipo:</label>
+            <select id="tipoAfectacion">
+                <option value="">Todos los tipos</option>
+            </select>
         </div>
-
-        <div class="stats">
-            <div class="stat-card">
-                <div class="stat-number" id="totalEventos">0</div>
-                <div class="stat-label">Total Eventos</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="eventosAlta">0</div>
-                <div class="stat-label">Severidad Alta</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="eventosMes">0</div>
-                <div class="stat-label">Este Mes</div>
-            </div>
+        
+        <div class="toolbar-group">
+            <label>📅 Desde:</label>
+            <input type="date" id="fechaInicio">
         </div>
+        
+        <div class="toolbar-group">
+            <label>📅 Hasta:</label>
+            <input type="date" id="fechaFin">
+        </div>
+        
+        <div class="toolbar-group">
+            <label>🏘️ Parroquia:</label>
+            <select id="parroquiaFiltro">
+                <option value="">Todas las parroquias</option>
+            </select>
+        </div>
+        
+        <button class="btn" onclick="aplicarFiltros()">🔍 Filtrar</button>
+        <button class="btn btn-secondary" onclick="limpiarFiltros()">🧹 Limpiar</button>
+        <button class="btn btn-danger" onclick="exportarDatos()">📊 Exportar</button>
+    </div>
 
-        <div class="main-content">
-            <div class="form-section">
-                <h2 class="section-title">📝 Registro de Evento</h2>
-                <form id="eventForm">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="coord_x">Coord X (UTM/Longitud):</label>
-                            <input type="number" id="coord_x" step="0.000001" placeholder="-79.0000" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="coord_y">Coord Y (UTM/Latitud):</label>
-                            <input type="number" id="coord_y" step="0.000001" placeholder="-4.0000" required>
-                        </div>
+    <div class="main-container">
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h3>📊 Panel de Control</h3>
+                <p>Análisis y estadísticas en tiempo real</p>
+            </div>
+            
+            <div class="sidebar-content">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h4>Total</h4>
+                        <div class="stat-number" id="totalRegistros">0</div>
                     </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="fecha">Fecha:</label>
-                            <input type="datetime-local" id="fecha" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="reporta">Reporta:</label>
-                            <input type="text" id="reporta" placeholder="Nombre del reportante" required>
-                        </div>
+                    <div class="stat-card">
+                        <h4>Este Mes</h4>
+                        <div class="stat-number" id="registrosMes">0</div>
                     </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="parroquia">Parroquia:</label>
-                            <select id="parroquia" required>
-                                <option value="">Seleccionar parroquia...</option>
-                                <option value="El Sagrario">El Sagrario</option>
-                                <option value="San Sebastián">San Sebastián</option>
-                                <option value="Sucre">Sucre</option>
-                                <option value="El Valle">El Valle</option>
-                                <option value="Malacatos">Malacatos</option>
-                                <option value="Vilcabamba">Vilcabamba</option>
-                                <option value="Quinara">Quinara</option>
-                                <option value="San Lucas">San Lucas</option>
-                                <option value="Santiago">Santiago</option>
-                                <option value="Chantaco">Chantaco</option>
-                                <option value="Chuquiribamba">Chuquiribamba</option>
-                                <option value="Gualel">Gualel</option>
-                                <option value="Jimbilla">Jimbilla</option>
-                                <option value="Taquil">Taquil</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="sector">Sector:</label>
-                            <input type="text" id="sector" placeholder="Ej: Centro, Barrio Las Flores..." required>
-                        </div>
+                    <div class="stat-card">
+                        <h4>Procesados</h4>
+                        <div class="stat-number" id="registrosProcesados">0</div>
                     </div>
-
-                    <div class="form-group">
-                        <label for="afectacion">Afectación:</label>
-                        <select id="afectacion" required>
-                            <option value="">Seleccionar tipo de afectación...</option>
-                            <option value="Viviendas">Viviendas</option>
-                            <option value="Predio vacio">Predio vacio</option>
-                            <option value="Área verde">Área verde</option>                            
-                            <option value="Equipamento público">Equipamento público</option>
-                            <option value="Infraestructura vial">Infraestructura vial</option>
-                            <option value="Servicios básicos-AAPP">Servicios básicos-AAPP</option>                            
-                            <option value="Servicios básicos-AALL">Servicios básicos-AALL</option>                           
-                            <option value="Servicios básicos-AASS">Servicios básicos-AASS</option>
-                            <option value="Centros educativos">Centros educativos</option>
-                            <option value="Centros de salud">Centros de salud</option>
-                            <option value="Agricultura">Agricultura</option>
-                            <option value="Ganadería">Ganadería</option>
-                            <option value="Comercio">Comercio</option>
-                            <option value="Medio ambiente">Medio ambiente</option>
-                            <option value="Otros">Otros</option>
-                        </select>
+                    <div class="stat-card">
+                        <h4>Pendientes</h4>
+                        <div class="stat-number" id="registrosPendientes">0</div>
                     </div>
+                </div>
 
-                    <div class="form-group">
-                        <label for="descripcion">Descripción:</label>
-                        <textarea id="descripcion" rows="3" placeholder="Describa detalladamente la afectación..." required></textarea>
-                    </div>
+                <div class="legend">
+                    <h4>🗺️ Leyenda de Tipos</h4>
+                    <div id="leyendaTipos"></div>
+                </div>
 
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="prioridad">Prioridad:</label>
-                            <select id="prioridad" required>
-                                <option value="">Seleccionar...</option>
-                                <option value="Alta">🔴 Alta</option>
-                                <option value="Media">🟡 Media</option>
-                                <option value="Baja">🟢 Baja</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="clase_cooper">Clase Cooper:</label>
-                            <select id="clase_cooper" required>
-                                <option value="">Seleccionar clase...</option>
-                                <option value="Clase 0">Clase 0 - No visible desde el exterior</option>
-                                <option value="Clase I">Clase I - Grietas finas</option>
-                                <option value="Clase II">Clase II - Daño No visible desde el exterior</option>
-                                <option value="Clase III">Clase III - Grietas Reparables</option>
-                                <option value="Clase IV">Clase IV - Daños extenso, reparar o reponer elementos</option>                                
-                                <option value="Clase V">Clase V - Daño a elementos estructurales</option>                                
-                                <option value="Clase VI">Clase VI - Colapso parcial</option>                                
-                                <option value="Clase VII">Clase VII - Colapso total</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="evento">Evento:</label>
-                            <select id="evento" required>
-                                <option value="">Seleccionar evento...</option>
-                                <option value="Lluvia intensa">🌧️ Lluvia intensa</option>
-                                <option value="Sismo">🌋 Sismo</option>
-                                <option value="Deslizamiento">⛰️ Deslizamiento</option>
-                                <option value="Inundación">🌊 Inundación</option>
-                                <option value="Vendaval">💨 Vendaval</option>
-                                <option value="Sequía">☀️ Sequía</option>
-                                <option value="Incendio forestal">🔥 Incendio forestal</option>
-                                <option value="Contaminación">🏭 Contaminación</option>
-                                <option value="Accidente vial">🚗 Accidente vial</option>
-                                <option value="Derrame">⚠️ Derrame</option>
-                                <option value="Otros">❓ Otros</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="depende">Depende:</label>
-                            <select id="depende">
-                                <option value="">Seleccionar institución...</option>
-                                <option value="GAD Loja">GAD Municipal Loja</option>
-                                <option value="UMAPAL">UMAPAL</option>
-                                <option value="Bomberos">Cuerpo de Bomberos</option>
-                                <option value="Policía Nacional">Policía Nacional</option>
-                                <option value="ECU 911">ECU 911</option>
-                                <option value="MSP">Ministerio de Salud</option>
-                                <option value="MINEDUC">Ministerio de Educación</option>
-                                <option value="MTOP">MTOP</option>
-                                <option value="Otros">Otros</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="acciones">Acciones:</label>
-                        <textarea id="acciones" rows="2" placeholder="Acciones realizadas o por realizar..."></textarea>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="dimensiones">Dimensiones:</label>
-                            <input type="text" id="dimensiones" placeholder="Ej: 100m x 50m, diámetro 20m...">
-                        </div>
-                        <div class="form-group">
-                            <label for="vol">Volumen (m³):</label>
-                            <input type="number" id="vol" min="0" step="0.01" placeholder="0.00">
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="estado">Estado:</label>
-                            <select id="estado" required>
-                                <option value="">Seleccionar estado...</option>
-                                <option value="Pendiente">⏳ Pendiente</option>
-                                <option value="En proceso">🔄 En proceso</option>
-                                <option value="Resuelto">✅ Resuelto</option>
-                                <option value="Archivado">📁 Archivado</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="informacion_afectados">Información Afectados:</label>
-                            <input type="text" id="informacion_afectados" placeholder="Número y tipo de afectados">
-                        </div>
-                    </div>
-
-                    <button type="submit" class="btn" id="submitBtn">🚀 Registrar Evento</button>
-                </form>
-
-                <div class="coordinates-info">
-                    <strong>💡 Ayuda:</strong> Haz clic en el mapa para obtener las coordenadas automáticamente.
+                <div class="legend">
+                    <h4>📍 Estadísticas por Parroquia</h4>
+                    <div id="estadisticasParroquia"></div>
                 </div>
             </div>
-
-            <div class="map-section">
-                <h2 class="section-title">🗺️ Mapa Interactivo</h2>
-                <div id="map"></div>
-            </div>
         </div>
 
-        <div class="data-section">
-            <h2 class="section-title">📊 Registro de Eventos</h2>
-            <div class="table-container">
-                <table id="eventosTable">
-                    <thead>
-                        <tr>
-                            <th>Fecha</th>
-                            <th>Evento</th>
-                            <th>Parroquia</th>
-                            <th>Sector</th>
-                            <th>Afectación</th>
-                            <th>Prioridad</th>
-                            <th>Estado</th>
-                            <th>Clase Cooper</th>
-                            <th>Reporta</th>
-                        </tr>
-                    </thead>
-                    <tbody id="eventosTableBody">
-                        <tr>
-                            <td colspan="9" style="text-align: center;">
-                                <div class="loading"></div> Cargando datos...
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+        <div class="map-container">
+            <div class="toggle-sidebar" onclick="toggleSidebar()">☰</div>
+            
+            <div class="map-controls">
+                <button class="map-control-btn" onclick="centrarMapa()" title="Centrar mapa">🎯</button>
+                <button class="map-control-btn" onclick="alternarCalor()" title="Mapa de calor">🔥</button>
+                <button class="map-control-btn" onclick="alternarClusters()" title="Agrupar marcadores">📍</button>
             </div>
+            
+            <div id="loading" class="loading-overlay">
+                <div class="loading-spinner"></div>
+                <div>Cargando datos del geoportal...</div>
+            </div>
+            
+            <div id="map"></div>
         </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
     <script>
         // Configuración de Supabase
-        const supabaseUrl = 'https://zpllugprxjqohnmxhizq.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwbGx1Z3ByeGpxb2hubXhoaXpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEzMjk0NTYsImV4cCI6MjA2NjkwNTQ1Nn0.wKZ1AgPUZMy178r75N2frJlJl6wbkrjCOk4m4MVqmEs';
-        
-        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+        const SUPABASE_URL = 'https://zpllugprxjqohnmxhizq.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwbGx1Z3ByeGpxb2hubXhoaXpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEzMjk0NTYsImV4cCI6MjA2NjkwNTQ1Nn0.wKZ1AgPUZMy178r75N2frJlJl6wbkrjCOk4m4MVqmEs';
 
-        // Inicialización del mapa centrado en Loja, Ecuador
-        const map = L.map('map').setView([-3.9939, -79.2042], 13);
-        
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(map);
+        // Variables globales
+        let map;
+        let markersGroup;
+        let heatmapLayer;
+        let afectacionesData = [];
+        let filteredData = [];
+        let tiposAfectacion = [];
+        let parroquias = [];
+        let clustersEnabled = false;
+        let heatmapEnabled = false;
 
-        // Almacenamiento de eventos
-        let eventos = [];
-        let markerGroup = L.layerGroup().addTo(map);
-
-        // Configuración de iconos por tipo de evento
-        const iconos = {
-            'Lluvia intensa': '🌧️',
-            'Sismo': '🌋',
-            'Deslizamiento': '⛰️',
-            'Inundación': '🌊',
-            'Vendaval': '💨',
-            'Sequía': '☀️',
-            'Incendio forestal': '🔥',
-            'Contaminación': '🏭',
-            'Accidente vial': '🚗',
-            'Derrame': '⚠️',
-            'Otros': '❓'
+        // Colores para diferentes tipos de afectaciones
+        const tipoColores = {
+            'DESLIZAMIENTO': '#e74c3c',
+            'INUNDACION': '#3498db', 
+            'INCENDIO': '#f39c12',
+            'SEQUIA': '#f1c40f',
+            'VIENTO': '#9b59b6',
+            'GRANIZO': '#95a5a6',
+            'LLUVIA': '#2ecc71',
+            'VOLCANICO': '#e67e22',
+            'SISMO': '#8e44ad',
+            'OTRO': '#34495e'
         };
 
-        // Función para crear marcador personalizado
-        function createCustomIcon(tipo, severidad) {
-            const emoji = iconos[tipo] || '📍';
-            const color = severidad === 'Alta' ? '#dc3545' : 
-                         severidad === 'Media' ? '#ffc107' : '#28a745';
-            
-            return L.divIcon({
-                html: `<div style="background: ${color}; border-radius: 50%; width: 40px; height: 40px; 
-                       display: flex; align-items: center; justify-content: center; 
-                       font-size: 20px; border: 3px solid white; box-shadow: 0 2px 10px rgba(0,0,0,0.3);">
-                       ${emoji}</div>`,
-                className: '',
-                iconSize: [40, 40],
-                iconAnchor: [20, 20]
-            });
-        }
+        // Iconos para diferentes tipos
+        const tipoIconos = {
+            'DESLIZAMIENTO': '🌋',
+            'INUNDACION': '🌊',
+            'INCENDIO': '🔥',
+            'SEQUIA': '🌵',
+            'VIENTO': '💨',
+            'GRANIZO': '🧊',
+            'LLUVIA': '🌧️',
+            'VOLCANICO': '🌋',
+            'SISMO': '🌍',
+            'OTRO': '⚠️'
+        };
 
-        // Evento click en el mapa para obtener coordenadas
-        map.on('click', function(e) {
-            const lat = e.latlng.lat.toFixed(6);
-            const lng = e.latlng.lng.toFixed(6);
-            
-            document.getElementById('coord_y').value = lat;
-            document.getElementById('coord_x').value = lng;
-            
-            // Limpiar marcadores temporales
-            map.eachLayer(layer => {
-                if (layer instanceof L.Marker && layer.isTemporary) {
-                    map.removeLayer(layer);
-                }
-            });
-            
-            // Crear marcador temporal
-            const tempMarker = L.marker([lat, lng], {
-                isTemporary: true
-            })
-                .addTo(map)
-                .bindPopup(`Coordenadas seleccionadas:<br>Y (Lat): ${lat}<br>X (Lng): ${lng}`)
-                .openPopup();
-        });
+        // Coordenadas del centro de Loja
+        const LOJA_CENTER = [-4.0, -79.2];
 
-        // Función para actualizar estadísticas
-        function actualizarEstadisticas() {
-            const total = eventos.length;
-            const alta = eventos.filter(e => e.prioridad === 'Alta').length;
-            const esteMes = eventos.filter(e => {
-                const fechaEvento = new Date(e.fecha);
-                const ahora = new Date();
-                return fechaEvento.getMonth() === ahora.getMonth() && 
-                       fechaEvento.getFullYear() === ahora.getFullYear();
-            }).length;
+        // Inicializar mapa
+        function initMap() {
+            map = L.map('map').setView(LOJA_CENTER, 10);
 
-            document.getElementById('totalEventos').textContent = total;
-            document.getElementById('eventosAlta').textContent = alta;
-            document.getElementById('eventosMes').textContent = esteMes;
-        }
-
-        // Función para agregar marcador al mapa
-        function agregarMarcador(evento) {
-            const marker = L.marker([evento.coord_y, evento.coord_x], {
-                icon: createCustomIcon(evento.evento, evento.prioridad)
+            // Agregar múltiples capas base
+            const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 19
             });
 
-            const fechaFormateada = new Date(evento.fecha).toLocaleString('es-ES');
-            
-            marker.bindPopup(
-                `<div style="min-width: 300px;">
-                    <h3>${evento.evento}</h3>
-                    <p><strong>Fecha:</strong> ${fechaFormateada}</p>
-                    <p><strong>Parroquia:</strong> ${evento.parroquia}</p>
-                    <p><strong>Sector:</strong> ${evento.sector}</p>
-                    <p><strong>Afectación:</strong> ${evento.afectacion}</p>
-                    <p><strong>Descripción:</strong> ${evento.descripcion}</p>
-                    <p><strong>Prioridad:</strong> ${evento.prioridad}</p>
-                    <p><strong>Clase Cooper:</strong> ${evento.clase_cooper}</p>
-                    <p><strong>Estado:</strong> ${evento.estado}</p>
-                    <p><strong>Dimensiones:</strong> ${evento.dimensiones || 'N/A'}</p>
-                    <p><strong>Volumen:</strong> ${evento.vol ? evento.vol + ' m³' : 'N/A'}</p>
-                    <p><strong>Información Afectados:</strong> ${evento.informacion_afectados || 'N/A'}</p>
-                    <p><strong>Reporta:</strong> ${evento.reporta}</p>
-                    <p><strong>Depende:</strong> ${evento.depende || 'N/A'}</p>
-                    ${evento.acciones ? `<p><strong>Acciones:</strong> ${evento.acciones}</p>` : ''}
-                </div>`
-            );
-
-            markerGroup.addLayer(marker);
-        }
-
-        // Función para actualizar tabla
-        function actualizarTabla() {
-            const tbody = document.getElementById('eventosTableBody');
-            tbody.innerHTML = '';
-
-            if (eventos.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="9" style="text-align: center;">No hay eventos registrados</td>
-                    </tr>
-                `;
-                return;
-            }
-
-            eventos.forEach(evento => {
-                const row = tbody.insertRow();
-                const fechaFormateada = new Date(evento.fecha).toLocaleString('es-ES');
-                
-                row.className = `severity-${evento.prioridad.toLowerCase()}`;
-                row.innerHTML = `
-                    <td>${fechaFormateada}</td>
-                    <td>${evento.evento}</td>
-                    <td>${evento.parroquia}</td>
-                    <td>${evento.sector}</td>
-                    <td>${evento.afectacion}</td>
-                    <td>${evento.prioridad}</td>
-                    <td>${evento.estado}</td>
-                    <td>${evento.clase_cooper}</td>
-                    <td>${evento.reporta}</td>
-                `;
+            const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                attribution: 'Tiles © Esri',
+                maxZoom: 19
             });
+
+            const topoLayer = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenTopoMap contributors',
+                maxZoom: 17
+            });
+
+            // Agregar capa por defecto
+            osmLayer.addTo(map);
+
+            // Control de capas
+            const baseMaps = {
+                "🗺️ OpenStreetMap": osmLayer,
+                "🛰️ Satélite": satelliteLayer,
+                "🏔️ Topográfico": topoLayer
+            };
+
+            L.control.layers(baseMaps).addTo(map);
+
+            // Grupo de marcadores
+            markersGroup = L.layerGroup().addTo(map);
+
+            // Controles de zoom personalizados
+            map.zoomControl.setPosition('bottomright');
+
+            // Escala
+            L.control.scale().addTo(map);
         }
 
-        // Cargar eventos desde Supabase
-        async function cargarEventos() {
-            try {
-                const { data, error } = await supabase
-                    .from('eventos')
-                    .select('*')
-                    .order('fecha', { ascending: false });
-                
-                if (error) throw error;
-                
-                eventos = data;
-                actualizarTabla();
-                actualizarEstadisticas();
-                
-                // Limpiar marcadores anteriores
-                markerGroup.clearLayers();
-                
-                // Agregar marcadores para cada evento
-                eventos.forEach(agregarMarcador);
-                
-            } catch (error) {
-                console.error('Error al cargar eventos:', error);
-                document.getElementById('eventosTableBody').innerHTML = `
-                    <tr>
-                        <td colspan="9" style="text-align: center; color: #dc3545;">
-                            Error al cargar los datos. Intente recargar la página.
-                        </td>
-                    </tr>
-                `;
-            }
-        }
-
-        // Manejo del formulario
-        document.getElementById('eventForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const submitBtn = document.getElementById('submitBtn');
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span class="loading"></span> Guardando...';
-            
-            const evento = {
-                coord_x: parseFloat(document.getElementById('coord_x').value),
-                coord_y: parseFloat(document.getElementById('coord_y').value),
-                fecha: document.getElementById('fecha').value,
-                reporta: document.getElementById('reporta').value,
-                parroquia: document.getElementById('parroquia').value,
-                sector: document.getElementById('sector').value,
-                afectacion: document.getElementById('afectacion').value,
-                descripcion: document.getElementById('descripcion').value,
-                prioridad: document.getElementById('prioridad').value,
-                clase_cooper: document.getElementById('clase_cooper').value,
-                evento: document.getElementById('evento').value,
-                depende: document.getElementById('depende').value,
-                acciones: document.getElementById('acciones').value,
-                dimensiones: document.getElementById('dimensiones').value,
-                vol: parseFloat(document.getElementById('vol').value) || null,
-                estado: document.getElementById('estado').value,
-                informacion_afectados: document.getElementById('informacion_afectados').value,
-                created_at: new Date().toISOString()
+        // Función para hacer peticiones a Supabase
+        async function fetchSupabase(endpoint, options = {}) {
+            const url = `${SUPABASE_URL}/rest/v1/${endpoint}`;
+            const headers = {
+                'apikey': SUPABASE_KEY,
+                'Authorization': `Bearer ${SUPABASE_KEY}`,
+                'Content-Type': 'application/json',
+                ...options.headers
             };
 
             try {
-                // Insertar en Supabase
-                const { data, error } = await supabase
-                    .from('eventos')
-                    .insert([evento])
-                    .select();
+                const response = await fetch(url, { ...options, headers });
+                if (!response.ok) {
+                    throw new Error(`Error ${response.status}: ${response.statusText}`);
+                }
+                return await response.json();
+            } catch (error) {
+                console.error('Error en petición a Supabase:', error);
+                throw error;
+            }
+        }
+
+        // Cargar datos de afectaciones
+        async function cargarAfectaciones() {
+            try {
+                document.getElementById('loading').classList.remove('hidden');
                 
-                if (error) throw error;
+                const data = await fetchSupabase('Ed_cgr?select=*&order=FECHA.desc');
+                afectacionesData = data;
+                filteredData = data;
                 
-                // Agregar a la lista local
-                const nuevoEvento = data[0];
-                eventos.unshift(nuevoEvento);
+                // Extraer tipos y parroquias únicos
+                tiposAfectacion = [...new Set(data.map(item => item.TIPO_AFECTACION).filter(Boolean))];
+                parroquias = [...new Set(data.map(item => item.PARROQUIA).filter(Boolean))];
                 
-                // Actualizar UI
-                agregarMarcador(nuevoEvento);
-                actualizarTabla();
-                actualizarEstadisticas();
+                // Llenar selects
+                llenarSelects();
                 
-                // Limpiar formulario
-                this.reset();
+                // Mostrar marcadores
+                mostrarMarcadores(data);
                 
-                // Mostrar confirmación
-                alert('✅ Evento registrado exitosamente!');
+                // Actualizar estadísticas
+                actualizarEstadisticas(data);
                 
-                // Centrar mapa en el nuevo evento
-                map.setView([nuevoEvento.coord_y, nuevoEvento.coord_x], 15);
+                // Actualizar leyenda
+                actualizarLeyenda(data);
+                
+                // Ajustar vista del mapa
+                ajustarVistaMapa(data);
                 
             } catch (error) {
-                console.error('Error al guardar evento:', error);
-                alert('❌ Error al registrar el evento. Por favor intente nuevamente.');
+                console.error('Error al cargar afectaciones:', error);
+                mostrarError('Error al cargar los datos. Verifique la conexión a la base de datos.');
             } finally {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '🚀 Registrar Evento';
+                document.getElementById('loading').classList.add('hidden');
             }
-        });
+        }
 
-        // Inicializar fecha actual
-        document.getElementById('fecha').valueAsDate = new Date();
-        
-        // Cargar eventos al iniciar
-        document.addEventListener('DOMContentLoaded', cargarEventos);
-    </script>
-</body>
-</html>
+        // Llenar selects de filtros
+        function llenarSelects() {
+            // Tipos de afectación
+            const selectTipos = document.getElementById('tipoAfectacion');
+            selectTipos.innerHTML = '<option value="">Todos los tipos</option>';
+            tiposAfectacion.sort().forEach(tipo => {
+                const option = document.createElement('option');
+                option.value = tipo;
+                option.textContent = `${tipoIconos[tipo] || '⚠️'} ${tipo}`;
+                selectTipos.appendChild(option);
+            });
+
+            // Parroquias
+            const selectParroquias = document.getElementById('parroquiaFiltro');
+            selectParroquias.innerHTML = '<option value="">Todas las parroquias</option>';
+            parroquias.sort().forEach(parroquia => {
+                const option = document.createElement('option');
+                option.value = parroquia;
+                option.textContent = parroquia;
+                selectParroquias.appendChild(option);
+            });
+        }
+
+        // Mostrar marcadores en el mapa
+        function mostrarMarcadores(data) {
+            markersGroup.clearLayers();
+            
+            data.forEach(afectacion => {
+                if (afectacion.LATITUD && afectacion.LONGITUD) {
+                    const lat = parseFloat(afectacion.LATITUD);
+                    const lng = parseFloat(afectacion.LONGITUD);
+                    
+                    if (!isNaN(lat) && !isNaN(lng)) {
+                        const tipo = afectacion.TIPO_AFECTACION || 'OTRO';
+                        const color = tipoColores[tipo] || tipoColores['OTRO'];
+                        
+                        const marker = L.circleMarker([lat, lng], {
+                            radius: 8,
+                            fillColor: color,
+                            color: '#ffffff',
+                            weight: 2,
+                            opacity: 1,
+                            fillOpacity: 0.8
+                        });
+                        
+                        // Crear popup con información detallada
+                        const popupContent = crearPopupContent(afectacion);
+                        marker.bindPopup(popupContent, { maxWidth: 400 });
+                        
+                        // Tooltip con información básica
+                        marker.bindTooltip(
+                            `${tipoIconos[tipo] || '⚠️'} ${tipo}<br>📅 ${afectacion.FECHA || 'Sin fecha'}`,
+                            { permanent: false, direction: 'top' }
+                        );
+                        
+                        marker.addTo(markersGroup);
+                    }
+                }
+            });
+        }
+
+        // Crear contenido detallado del popup
+        function crearPopupContent(afectacion) {
+            const tipo = afectacion.TIPO_AFECTACION || 'No especificado';
+            const icono = tipoIconos[tipo] || '⚠️';
+            
+            return `
+                <div class="popup-content">
+                    <h3>${icono} ${tipo}</h3>
+                    <div class="info-grid">
+                        <div class="info-label">📅 Fecha:</div>
+                        <div class="info-value">${afectacion.FECHA || 'No especificada'}</div>
+                        
+                        <div class="info-label">🕒 Hora:</div>
+                        <div class="info-value">${afectacion.HORA || 'No especificada'}</div>
+                        
+                        <div class="info-label">🏘️ Parroquia:</div>
+                        <div class="info-value">${afectacion.PARROQUIA || 'No especificada'}</div>
+                        
+                        <div class="info-label">📍 Sector:</div>
+                        <div class="info-value">${afectacion.SECTOR || 'No especificado'}</div>
+                        
+                        <div class="info-label">✅ Procesado:</div>
+                        <div class="info-value">${afectacion.PROCESADO === 'SI' ? '✅ Sí' : '❌ No'}</div>
+                        
+                        <div class="info-label">📍 Coordenadas:</div>
+                        <div class="info-value">${afectacion.LATITUD}, ${afectacion.LONGITUD}</div>
+                    </div>
+                    
+                    ${afectacion.DESCRIPCION ? `
+                        <div class="description">
+                            <strong>📋 Descripción:</strong><br>
+                            ${afectacion.DESCRIPCION}
+                        </div>
+                    ` : ''}
+                    
+                    ${afectacion.OBSERVACIONES ? `
+                        <div class="description">
+                            <strong>📝 Observaciones:</strong><br>
+                            ${afectacion.OBSERVACIONES}
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        // Actualizar estadísticas
+        function actualizarEstadisticas(data) {
+            const total = data.length;
+            const procesados = data.filter(item => item.PROCESADO === 'SI').length;
+            const pendientes = total - procesados;
+            
+            // Calcular registros de este mes
+            const ahora = new Date();
+            const esteAno = ahora.getFullYear();
+            const esteMes = ahora.getMonth() + 1;
+            const registrosMes = data.filter(item => {
+                if (!item.FECHA) return false;
+                const fecha = new Date(item.FECHA);
+                return fecha.getFullYear() === esteAno && fecha.getMonth() + 1 === esteMes;
+            }).length;
+            
+            document.getElementById('totalRegistros').textContent = total;
+            document.getElementById('registrosMes').textContent = registrosMes;
+            document.getElementById('registrosProcesados').textContent = procesados;
+            document.getElementById('registrosPendientes').textContent = pendientes;
+        }
+
+        // Actualizar leyenda
+        function actualizarLeyenda(data) {
+            // Leyenda por tipos
+            const tiposCount = {};
+            data.forEach(item => {
+                const tipo = item.TIPO_AFECTACION || 'OTRO';
+                tiposCount[tipo] = (tiposCount[tipo] || 0) + 1;
+            });
+            
+            const leyendaTipos = document.getElementById('leyendaTipos');
+            let htmlTipos = '';
+            
+            Object.entries(tiposCount).sort((a, b) => b[1] - a[1]).forEach(([tipo, count]) => {
+                const color = tipoColores[tipo] || tipoColores['OTRO'];
+                const icono = tipoIconos[tipo] || '⚠️';
+                htmlTipos += `
+                    <div class="legend-item">
+                        <div class="legend-marker" style="background-color: ${color}"></div>
+                        <div class="legend-text">${icono} ${tipo}</div>
+                        <div class="legend-count">${count}</div>
+                    </div>
+                `;
+            });
+            
+            leyendaTipos.innerHTML = htmlTipos;
+            
+            // Estadísticas por parroquia
+            const parroquiasCount = {};
+            data.forEach(item => {
+                const parroquia = item.PARROQUIA || 'No especificada';
+                parroquiasCount[parroquia] = (parroquiasCount[parroquia] || 0) + 1;
+            });
+            
+            const estadisticasParroquia = document.getElementById('estadisticasParroquia');
+            let htmlParroquias = '';
+            
+            Object.entries(parroquiasCount).sort((a, b) => b[1] - a[1]).slice(0, 10).forEach(([parroquia, count]) => {
+                htmlParroquias += `
+                    <div class="legend-item">
+                        <div class="legend-text">🏘️ ${parroquia}</div>
+                        <div class="legend-count">${count}</div>
+                    </div>
+                `;
+            });
+            
+            estadisticasParroquia.innerHTML = htmlParroquias;
+        }
+
+        // Aplicar filtros
+        function aplicarFiltros() {
+            const tipoSeleccionado = document.getElementById('tipoAfectacion').value;
+            const fechaInicio = document.getElementById('fechaInicio').value;
+            const fechaFin = document.getElementById('fechaFin').value;
+            const parroquiaSeleccionada = document.getElementById('parroquiaFiltro').value;
+            
+            filteredData = afectacionesData.filter(item => {
+                // Filtro por tipo
+                if (tipoSeleccionado && item.TIPO_AFECTACION !== tipoSeleccionado) {
+                    return false;
+                }
+                
+                // Filtro por fecha inicio
+                if (fechaInicio && item.FECHA && item.FECHA < fechaInicio) {
+                    return false;
+                }
