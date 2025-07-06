@@ -1,118 +1,125 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <title>Geovisor Supabase - bd_cgr</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
-  
+
+  <!-- Font Awesome para iconos -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
   <style>
-    * { box-sizing: border-box; }
-    body { 
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-      margin: 0; 
-      padding: 0; 
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
       background: #f5f7fa;
     }
-    
+
     .header {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
       padding: 1rem 2rem;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     }
-    
+
     .header h1 {
       margin: 0;
       font-size: 1.8rem;
       font-weight: 300;
     }
-    
+
     .container {
       display: flex;
       height: calc(100vh - 100px);
       gap: 1rem;
       padding: 1rem;
     }
-    
+
     .sidebar {
       width: 350px;
       background: white;
       border-radius: 8px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       overflow: hidden;
       display: flex;
       flex-direction: column;
     }
-    
+
     .sidebar-header {
       background: #2c3e50;
       color: white;
       padding: 1rem;
     }
-    
+
     .sidebar-content {
       flex: 1;
       overflow-y: auto;
       padding: 1rem;
     }
-    
+
     .map-container {
       flex: 1;
       position: relative;
       border-radius: 8px;
       overflow: hidden;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
-    
+
     #map {
       width: 100%;
       height: 100%;
       min-height: 400px;
     }
-    
+
     .status {
       padding: 0.75rem;
       margin-bottom: 1rem;
       border-radius: 4px;
       font-size: 0.9rem;
     }
-    
+
     .status.loading {
       background: #e3f2fd;
       color: #1976d2;
       border: 1px solid #bbdefb;
     }
-    
+
     .status.success {
       background: #e8f5e8;
       color: #2e7d32;
       border: 1px solid #c8e6c9;
     }
-    
+
     .status.error {
       background: #ffebee;
       color: #c62828;
       border: 1px solid #ffcdd2;
     }
-    
+
     .filters {
       margin-bottom: 1rem;
     }
-    
+
     .filter-group {
       margin-bottom: 1rem;
     }
-    
+
     .filter-group label {
       display: block;
       margin-bottom: 0.5rem;
       font-weight: 500;
       color: #2c3e50;
     }
-    
+
     .filter-group select,
     .filter-group input {
       width: 100%;
@@ -121,14 +128,14 @@
       border-radius: 4px;
       font-size: 0.9rem;
     }
-    
+
     .filter-group select:focus,
     .filter-group input:focus {
       outline: none;
       border-color: #667eea;
       box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
     }
-    
+
     .btn {
       background: #667eea;
       color: white;
@@ -140,16 +147,16 @@
       width: 100%;
       transition: background 0.3s;
     }
-    
+
     .btn:hover {
       background: #5a6fd8;
     }
-    
+
     .btn:disabled {
       background: #ccc;
       cursor: not-allowed;
     }
-    
+
     .data-count {
       background: #f8f9fa;
       padding: 0.75rem;
@@ -159,47 +166,82 @@
       font-weight: 500;
       color: #495057;
     }
-    
+
     .popup-content {
       max-width: 250px;
     }
-    
+
     .popup-content h4 {
       margin: 0 0 0.5rem 0;
       color: #2c3e50;
     }
-    
+
     .popup-content p {
       margin: 0.25rem 0;
       font-size: 0.85rem;
     }
-    
+
     .popup-content .label {
       font-weight: 500;
       color: #495057;
     }
-    
+
+    .legend {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1000;
+      background: white;
+      padding: 10px;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      margin: 5px 0;
+    }
+
+    .legend-icon {
+      width: 20px;
+      height: 20px;
+      margin-right: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
     @media (max-width: 768px) {
       .container {
         flex-direction: column;
         height: auto;
       }
-      
+
       .sidebar {
         width: 100%;
         order: 2;
       }
-      
+
       .map-container {
         height: 400px;
         order: 1;
       }
+
+      .legend {
+        bottom: 10px;
+        right: 10px;
+        font-size: 0.8rem;
+      }
     }
   </style>
 </head>
+
 <body>
   <div class="header">
-    <h1>🗺️ Geovisor de afectaciones naturales y antropicas en el cantón Loja - coordinación de gestión de riesgos</h1>
+    <h1>🗺️ Geovisor de afectaciones en el cantón Loja - Coordinación de Gestión de Riesgos-Ing Millan Paul Alverca
+      Gaona</h1>
+
   </div>
 
   <div class="container">
@@ -209,7 +251,7 @@
       </div>
       <div class="sidebar-content">
         <div id="status" class="status loading">🔎 Conectando a la base de datos...</div>
-        
+
         <div class="data-count" id="dataCount">
           Datos cargados: <span id="recordCount">0</span>
         </div>
@@ -230,6 +272,13 @@
           </div>
 
           <div class="filter-group">
+            <label for="eventoFilter">Tipo de Evento:</label>
+            <select id="eventoFilter">
+              <option value="">Todos los eventos</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
             <label for="afectacionFilter">Afectación:</label>
             <select id="afectacionFilter">
               <option value="">Todas las afectaciones</option>
@@ -240,6 +289,16 @@
             <label for="estadoFilter">Estado:</label>
             <select id="estadoFilter">
               <option value="">Todos los estados</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label for="prioridadFilter">Prioridad:</label>
+            <select id="prioridadFilter">
+              <option value="">Todas las prioridades</option>
+              <option value="ALTA">ALTA</option>
+              <option value="MEDIA">MEDIA</option>
+              <option value="BAJA">BAJA</option>
             </select>
           </div>
 
@@ -255,218 +314,364 @@
 
     <div class="map-container">
       <div id="map"></div>
+      <!--<div class="legend">
+        <h4>Leyenda</h4>
+        <div class="legend-item">
+          <div class="legend-icon" style="color: #1e90ff;"><i class="fas fa-house-flood"></i></div>
+          <span>Inundación</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-icon" style="color: #8b4513;"><i class="fas fa-hill-rockslide"></i></div>
+          <span>Movimiento de masas</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-icon" style="color: #ff4500;"><i class="fas fa-building-collapse"></i></div>
+          <span>Colapso estructural</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-icon" style="color: #228b22;"><i class="fas fa-tree"></i></div>
+          <span>Área verde</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-icon" style="color: #4169e1;"><i class="fas fa-home"></i></div>
+          <span>Vivienda</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-icon" style="color: #a0522d;"><i class="fas fa-map"></i></div>
+          <span>Predio</span>
+        </div>
+      </div>
+    </div>-->
     </div>
-  </div>
 
-  <!-- Leaflet JS -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+    <!-- Leaflet JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 
-  <script>
-    // Configuración Supabase
-    const SUPABASE_URL = 'https://zpllugprxjqohnmxhizq.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwbGx1Z3ByeGpxb2hubXhoaXpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEzMjk0NTYsImV4cCI6MjA2NjkwNTQ1Nn0.wKZ1AgPUZMy178r75N2frJlJl6wbkrjCOk4m4MVqmEs';
+    <script>
+      // Configuración Supabase
+      const SUPABASE_URL = 'https://zpllugprxjqohnmxhizq.supabase.co';
+      const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwbGx1Z3ByeGpxb2hubXhoaXpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEzMjk0NTYsImV4cCI6MjA2NjkwNTQ1Nn0.wKZ1AgPUZMy178r75N2frJlJl6wbkrjCOk4m4MVqmEs';
 
-    // Variables globales
-    let map;
-    let allData = [];
-    let filteredData = [];
-    let markersLayer;
+      // Variables globales
+      let map;
+      let allData = [];
+      let filteredData = [];
+      let markersLayer;
 
-    // Inicializar la aplicación
-    document.addEventListener('DOMContentLoaded', () => {
-      initializeMap();
-      cargarDatos();
-    });
+      // Colores para marcadores según prioridad
+      const PRIORITY_COLORS = {
+        'ALTA': '#dc3545',    // Rojo
+        'MEDIA': '#ffc107',   // Amarillo
+        'BAJA': '#28a745',    // Verde
+        'DEFAULT': '#007bff'  // Azul (por defecto)
+      };
 
-    function initializeMap() {
-      // Inicializar mapa centrado en Ecuador
-      map = L.map('map').setView([-1.831239, -78.183406], 7);
+      // Iconos por tipo de evento
+      const EVENT_ICONS = {
+        'INUNDACIÓN': { icon: 'house-flood', color: '#1e90ff' },
+        'MOVIMIENTO DE MASAS': { icon: 'hill-rockslide', color: '#8b4513' },
+        'COLAPSO ESTRUCTURAL': { icon: 'building-collapse', color: '#ff4500' },
+        'DESLIZAMIENTO': { icon: 'hill-rockslide', color: '#8b4513' },
+        'SISMO': { icon: 'house-earthquake', color: '#9932cc' },
+        'INCENDIO': { icon: 'fire', color: '#ff4500' },
+        'DEFAULT': { icon: 'triangle-exclamation', color: '#007bff' }
+      };
 
-      // Agregar capa base
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-      }).addTo(map);
+      // Iconos por tipo de afectación
+      const AFECTACION_ICONS = {
+        'VIVIENDA': { icon: 'home', color: '#4169e1' },
+        'PREDIO': { icon: 'map', color: '#a0522d' },
+        'ÁREA VERDE': { icon: 'tree', color: '#228b22' },
+        'INFRAESTRUCTURA VIAL': { icon: 'road', color: '#696969' },
+        'EQUIPAMIENTO PÚBLICO': { icon: 'building', color: '#4682b4' },
+        'DEFAULT': { icon: 'location-dot', color: '#007bff' }
+      };
 
-      // Inicializar capa de marcadores
-      markersLayer = L.layerGroup().addTo(map);
-    }
+      // Función para obtener el icono adecuado
+      function getCustomIcon(item) {
+        // Determinar el tipo de evento (en mayúsculas para estandarizar)
+        const evento = (item.EVENTO || '').toUpperCase().trim();
+        const afectacion = (item.AFECTACION || '').toUpperCase().trim();
+        const prioridad = (item.PRIORIDAD || '').toUpperCase().trim();
 
-    async function cargarDatos() {
-      const status = document.getElementById('status');
-      
-      try {
-        status.textContent = '🔄 Cargando datos de bd_cgr...';
-        status.className = 'status loading';
-
-        // Cargar datos desde Supabase
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/bd_cgr?select=*`, {
-          headers: {
-            'apikey': SUPABASE_KEY,
-            'Authorization': `Bearer ${SUPABASE_KEY}`
+        // Buscar icono para el evento
+        let iconInfo = EVENT_ICONS.DEFAULT;
+        for (const [key, value] of Object.entries(EVENT_ICONS)) {
+          if (evento.includes(key)) {
+            iconInfo = value;
+            break;
           }
+        }
+
+        // Si no encontramos un icono específico para el evento, probamos con la afectación
+        if (iconInfo === EVENT_ICONS.DEFAULT) {
+          for (const [key, value] of Object.entries(AFECTACION_ICONS)) {
+            if (afectacion.includes(key)) {
+              iconInfo = value;
+              break;
+            }
+          }
+        }
+
+        // Color según prioridad
+        const color = PRIORITY_COLORS[prioridad] || iconInfo.color || PRIORITY_COLORS.DEFAULT;
+
+        return L.divIcon({
+          className: 'custom-marker',
+          html: `
+          <div style="
+            background-color: ${color};
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 0 5px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+          ">
+            <i class="fas fa-${iconInfo.icon}"></i>
+          </div>
+        `,
+          iconSize: [24, 24],
+          iconAnchor: [12, 12]
+        });
+      }
+
+      // Inicializar la aplicación
+      document.addEventListener('DOMContentLoaded', () => {
+        initializeMap();
+        cargarDatos();
+      });
+
+      function initializeMap() {
+        // Inicializar mapa centrado en Loja, Ecuador (coordenadas WGS84)
+        map = L.map('map').setView([-3.9939, -79.2042], 12);
+
+        // Agregar capa base
+        L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+          attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Inicializar capa de marcadores
+        markersLayer = L.layerGroup().addTo(map);
+      }
+
+      async function cargarDatos() {
+        const status = document.getElementById('status');
+
+        try {
+          status.textContent = '🔄 Cargando datos de bd_cgr...';
+          status.className = 'status loading';
+
+          // Cargar datos desde Supabase
+          const response = await fetch(`${SUPABASE_URL}/rest/v1/bd_loja_1?select=*`, {
+            headers: {
+              'apikey': SUPABASE_KEY,
+              'Authorization': `Bearer ${SUPABASE_KEY}`
+            }
+          });
+
+          if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status}`);
+          }
+
+          const data = await response.json();
+
+          if (data.length === 0) {
+            status.textContent = '⚠️ No se encontraron datos en la tabla bd_cgr';
+            status.className = 'status error';
+            return;
+          }
+
+          allData = data;
+          filteredData = [...data];
+
+          // Poblar filtros
+          poblarFiltros();
+
+          // Mostrar datos en el mapa
+          mostrarDatosEnMapa();
+
+          // Actualizar contador
+          actualizarContador();
+
+          status.textContent = `✅ ${data.length} registros cargados exitosamente`;
+          status.className = 'status success';
+
+        } catch (error) {
+          console.error('Error al cargar datos:', error);
+          status.textContent = `❌ Error: ${error.message}`;
+          status.className = 'status error';
+        }
+      }
+
+      function poblarFiltros() {
+        // Obtener valores únicos para cada filtro
+        const anios = [...new Set(allData.map(item => item.ANIO).filter(Boolean))].sort();
+        const sectores = [...new Set(allData.map(item => item.SECTOR_BASICO).filter(Boolean))].sort();
+        const eventos = [...new Set(allData.map(item => item.EVENTO).filter(Boolean))].sort();
+        const afectaciones = [...new Set(allData.map(item => item.AFECTACION).filter(Boolean))].sort();
+        const estados = [...new Set(allData.map(item => item.ESTADO).filter(Boolean))].sort();
+
+        // Poblar select de años
+        const anioSelect = document.getElementById('anioFilter');
+        anios.forEach(anio => {
+          const option = document.createElement('option');
+          option.value = anio;
+          option.textContent = anio;
+          anioSelect.appendChild(option);
         });
 
-        if (!response.ok) {
-          throw new Error(`Error HTTP: ${response.status}`);
-        }
+        // Poblar select de sectores
+        const sectorSelect = document.getElementById('sectorFilter');
+        sectores.forEach(sector => {
+          const option = document.createElement('option');
+          option.value = sector;
+          option.textContent = sector;
+          sectorSelect.appendChild(option);
+        });
 
-        const data = await response.json();
-        
-        if (data.length === 0) {
-          status.textContent = '⚠️ No se encontraron datos en la tabla bd_cgr';
-          status.className = 'status error';
-          return;
-        }
+        // Poblar select de eventos
+        const eventoSelect = document.getElementById('eventoFilter');
+        eventos.forEach(evento => {
+          const option = document.createElement('option');
+          option.value = evento;
+          option.textContent = evento;
+          eventoSelect.appendChild(option);
+        });
 
-        allData = data;
-        filteredData = [...data];
-        
-        // Poblar filtros
-        poblarFiltros();
-        
-        // Mostrar datos en el mapa
-        mostrarDatosEnMapa();
-        
-        // Actualizar contador
-        actualizarContador();
-        
-        status.textContent = `✅ ${data.length} registros cargados exitosamente`;
-        status.className = 'status success';
+        // Poblar select de afectaciones
+        const afectacionSelect = document.getElementById('afectacionFilter');
+        afectaciones.forEach(afectacion => {
+          const option = document.createElement('option');
+          option.value = afectacion;
+          option.textContent = afectacion;
+          afectacionSelect.appendChild(option);
+        });
 
-      } catch (error) {
-        console.error('Error al cargar datos:', error);
-        status.textContent = `❌ Error: ${error.message}`;
-        status.className = 'status error';
+        // Poblar select de estados
+        const estadoSelect = document.getElementById('estadoFilter');
+        estados.forEach(estado => {
+          const option = document.createElement('option');
+          option.value = estado;
+          option.textContent = estado;
+          estadoSelect.appendChild(option);
+        });
       }
-    }
 
-    function poblarFiltros() {
-      // Obtener valores únicos para cada filtro
-      const anios = [...new Set(allData.map(item => item.ANIO).filter(Boolean))].sort();
-      const sectores = [...new Set(allData.map(item => item.SECTOR_BASICO).filter(Boolean))].sort();
-      const afectaciones = [...new Set(allData.map(item => item.AFECTACION).filter(Boolean))].sort();
-      const estados = [...new Set(allData.map(item => item.ESTADO).filter(Boolean))].sort();
+      function mostrarDatosEnMapa() {
+        // Limpiar marcadores anteriores
+        markersLayer.clearLayers();
 
-      // Poblar select de años
-      const anioSelect = document.getElementById('anioFilter');
-      anios.forEach(anio => {
-        const option = document.createElement('option');
-        option.value = anio;
-        option.textContent = anio;
-        anioSelect.appendChild(option);
-      });
+        // Agregar marcadores para datos que tengan coordenadas
+        filteredData.forEach(item => {
+          // Obtener coordenadas (asegurando que sean números)
+          let lat = parseFloat(item.LATITUD || item.lat || item.latitude || item.geom.coordinates[1]);
+          let lng = parseFloat(item.LONGITUD || item.lng || item.longitude || item.geom.coordinates[0]);
+          console.log('Procesando item:', item);
+          console.log('Coordenadas obtenidas:', item.geom.coordinates[1]);
+          // Verificar que las coordenadas sean válidas (dentro de Ecuador)
+          // Ajustado para coordenadas WGS84 de Loja (lat: -3.5 a -4.5, lng: -78.5 a -80.5)
+          if (isNaN(lat) || isNaN(lng) || lat < -4.5 || lat > -3.5 || lng < -80.5 || lng > -78.5) {
+            // Si no son válidas, generar coordenadas aleatorias dentro del área de Loja
+            lat = -3.9939 + (Math.random() * 0.5 - 0.25); // ±0.25 grados de latitud
+            lng = -79.2042 + (Math.random() * 0.5 - 0.25); // ±0.25 grados de longitud
+            console.log('Procesando item:', item);
+            
+          }
 
-      // Poblar select de sectores
-      const sectorSelect = document.getElementById('sectorFilter');
-      sectores.forEach(sector => {
-        const option = document.createElement('option');
-        option.value = sector;
-        option.textContent = sector;
-        sectorSelect.appendChild(option);
-      });
+          // Crear marcador con icono personalizado
+          const marker = L.marker([lat, lng], {
+            icon: getCustomIcon(item)
+          });
 
-      // Poblar select de afectaciones
-      const afectacionSelect = document.getElementById('afectacionFilter');
-      afectaciones.forEach(afectacion => {
-        const option = document.createElement('option');
-        option.value = afectacion;
-        option.textContent = afectacion;
-        afectacionSelect.appendChild(option);
-      });
+          // Crear popup con información
+          const popupContent = crearPopupContent(item, lat, lng);
+          marker.bindPopup(popupContent);
 
-      // Poblar select de estados
-      const estadoSelect = document.getElementById('estadoFilter');
-      estados.forEach(estado => {
-        const option = document.createElement('option');
-        option.value = estado;
-        option.textContent = estado;
-        estadoSelect.appendChild(option);
-      });
-    }
+          // Agregar marcador a la capa
+          markersLayer.addLayer(marker);
+        });
 
-    function mostrarDatosEnMapa() {
-      // Limpiar marcadores anteriores
-      markersLayer.clearLayers();
-
-      // Agregar marcadores para datos que tengan coordenadas
-      filteredData.forEach(item => {
-        // Intentar obtener coordenadas de diferentes campos posibles
-        let lat = item.LATITUD || item.lat || item.latitude;
-        let lng = item.LONGITUD || item.lng || item.longitude;
-
-        // Si no hay coordenadas directas, generar coordenadas aleatorias en Ecuador
-        if (!lat || !lng) {
-          // Generar coordenadas aleatorias dentro de Ecuador
-          lat = -4.5 + Math.random() * 6; // Entre -4.5 y 1.5
-          lng = -81.5 + Math.random() * 6; // Entre -81.5 y -75.5
+        // Ajustar vista del mapa para mostrar todos los marcadores
+        if (markersLayer.getLayers().length > 0) {
+          const group = new L.featureGroup(markersLayer.getLayers());
+          map.fitBounds(group.getBounds().pad(0.1));
         }
-
-        // Crear marcador
-        const marker = L.marker([lat, lng]);
-        
-        // Crear popup con información
-        const popupContent = crearPopupContent(item);
-        marker.bindPopup(popupContent);
-
-        // Agregar marcador a la capa
-        markersLayer.addLayer(marker);
-      });
-
-      // Ajustar vista del mapa para mostrar todos los marcadores
-      if (markersLayer.getLayers().length > 0) {
-        const group = new L.featureGroup(markersLayer.getLayers());
-        map.fitBounds(group.getBounds().pad(0.1));
       }
-    }
 
-    function crearPopupContent(item) {
-      return `
+      function crearPopupContent(item, lat, lng) {
+        // Formatear coordenadas en grados, minutos, segundos
+        const formatCoords = (coord) => {
+          const absolute = Math.abs(coord);
+          const degrees = Math.floor(absolute);
+          const minutesNotTruncated = (absolute - degrees) * 60;
+          const minutes = Math.floor(minutesNotTruncated);
+          const seconds = Math.floor((minutesNotTruncated - minutes) * 60);
+
+          return `${degrees}°${minutes}'${seconds}"${coord >= 0 ? 'N' : 'S'}`;
+        };
+
+        const latFormatted = formatCoords(lat);
+        const lngFormatted = formatCoords(lng);
+
+        return `
         <div class="popup-content">
-          <h4>Registro CGR</h4>
+          <h4>${item.EVENTO || 'Registro CGR '}</h4>
           ${item.ANIO ? `<p><span class="label">Año:</span> ${item.ANIO}</p>` : ''}
-          ${item.SECTOR_BASICO ? `<p><span class="label">Sector:</span> ${item.SECTOR_BASICO}</p>` : ''}
+          ${item.SECTOR_BASICO ? `<p><span class="label">Sector:</span> ${item.SECTOR_BASICO}  </p>` : ''}
           ${item.AFECTACION ? `<p><span class="label">Afectación:</span> ${item.AFECTACION}</p>` : ''}
           ${item.ESTADO ? `<p><span class="label">Estado:</span> ${item.ESTADO}</p>` : ''}
-          ${item.DESCRIPCION ? `<p><span class="label">Descripción:</span> ${item.DESCRIPCION.substring(0, 100)}...</p>` : ''}
-          ${item.PRIORIDAD ? `<p><span class="label">Prioridad:</span> ${item.PRIORIDAD}</p>` : ''}
-          ${item.EVENTO ? `<p><span class="label">Evento:</span> ${item.EVENTO}</p>` : ''}
+          ${item.PRIORIDAD ? `<p><span class="label">Prioridad:</span> ${item.PRIORIDAD} </p>` : ''}
+          <p><span class="label">Coordenadas (WGS84):</span><br>
+          ${lat.toFixed(6)}, ${lng.toFixed(6)}<br>
+          ${latFormatted}, ${lngFormatted}</p>
+          ${item.DESCRIPCION ? `<p><span class="label">Descripción:</span> ${item.DESCRIPCION.substring(0, 100)}${item.DESCRIPCION.length > 100 ? '...' : ''}</p>` : ''}
           ${item.FECHA ? `<p><span class="label">Fecha:</span> ${new Date(item.FECHA).toLocaleDateString()}</p>` : ''}
         </div>
       `;
-    }
+      }
 
-    function aplicarFiltros() {
-      const anio = document.getElementById('anioFilter').value;
-      const sector = document.getElementById('sectorFilter').value;
-      const afectacion = document.getElementById('afectacionFilter').value;
-      const estado = document.getElementById('estadoFilter').value;
-      const busqueda = document.getElementById('searchFilter').value.toLowerCase();
+      function aplicarFiltros() {
+        const anio = document.getElementById('anioFilter').value;
+        const sector = document.getElementById('sectorFilter').value;
+        const evento = document.getElementById('eventoFilter').value;
+        const afectacion = document.getElementById('afectacionFilter').value;
+        const estado = document.getElementById('estadoFilter').value;
+        const prioridad = document.getElementById('prioridadFilter').value;
+        const busqueda = document.getElementById('searchFilter').value.toLowerCase();
 
-      filteredData = allData.filter(item => {
-        const matchAnio = !anio || item.ANIO == anio;
-        const matchSector = !sector || item.SECTOR_BASICO == sector;
-        const matchAfectacion = !afectacion || item.AFECTACION == afectacion;
-        const matchEstado = !estado || item.ESTADO == estado;
-        const matchBusqueda = !busqueda || 
-          (item.DESCRIPCION && item.DESCRIPCION.toLowerCase().includes(busqueda)) ||
-          (item.EVENTO && item.EVENTO.toLowerCase().includes(busqueda));
+        filteredData = allData.filter(item => {
+          const matchAnio = !anio || item.ANIO == anio;
+          const matchSector = !sector || item.SECTOR_BASICO == sector;
+          const matchEvento = !evento || item.EVENTO == evento;
+          const matchAfectacion = !afectacion || item.AFECTACION == afectacion;
+          const matchEstado = !estado || item.ESTADO == estado;
+          const matchPrioridad = !prioridad || (item.PRIORIDAD && item.PRIORIDAD.toUpperCase() === prioridad);
+          const matchBusqueda = !busqueda ||
+            (item.DESCRIPCION && item.DESCRIPCION.toLowerCase().includes(busqueda)) ||
+            (item.EVENTO && item.EVENTO.toLowerCase().includes(busqueda));
 
-        return matchAnio && matchSector && matchAfectacion && matchEstado && matchBusqueda;
+          return matchAnio && matchSector && matchEvento && matchAfectacion && matchEstado && matchPrioridad && matchBusqueda;
+        });
+
+        mostrarDatosEnMapa();
+        actualizarContador();
+      }
+
+      function actualizarContador() {
+        document.getElementById('recordCount').textContent = filteredData.length;
+      }
+
+      // Agregar listener para filtro de búsqueda en tiempo real
+      document.getElementById('searchFilter').addEventListener('input', () => {
+        clearTimeout(window.searchTimeout);
+        window.searchTimeout = setTimeout(aplicarFiltros, 300);
       });
-
-      mostrarDatosEnMapa();
-      actualizarContador();
-    }
-
-    function actualizarContador() {
-      document.getElementById('recordCount').textContent = filteredData.length;
-    }
-
-    // Agregar listener para filtro de búsqueda en tiempo real
-    document.getElementById('searchFilter').addEventListener('input', () => {
-      clearTimeout(window.searchTimeout);
-      window.searchTimeout = setTimeout(aplicarFiltros, 300);
-    });
-  </script>
+    </script>
 </body>
+
 </html>
