@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>Geovisor Supabase - bd_cgr</title>
+  <title>Geovisor Multi-tabla Supabase</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <!-- Leaflet CSS -->
@@ -45,7 +45,7 @@
     }
 
     .sidebar {
-      width: 350px;
+      width: 380px;
       background: white;
       border-radius: 8px;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -105,58 +105,6 @@
       border: 1px solid #ffcdd2;
     }
 
-    .filters {
-      margin-bottom: 1rem;
-    }
-
-    .filter-group {
-      margin-bottom: 1rem;
-    }
-
-    .filter-group label {
-      display: block;
-      margin-bottom: 0.5rem;
-      font-weight: 500;
-      color: #2c3e50;
-    }
-
-    .filter-group select,
-    .filter-group input {
-      width: 100%;
-      padding: 0.5rem;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      font-size: 0.9rem;
-    }
-
-    .filter-group select:focus,
-    .filter-group input:focus {
-      outline: none;
-      border-color: #667eea;
-      box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
-    }
-
-    .btn {
-      background: #667eea;
-      color: white;
-      border: none;
-      padding: 0.75rem 1rem;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 0.9rem;
-      width: 100%;
-      transition: background 0.3s;
-    }
-
-    .btn:hover {
-      background: #5a6fd8;
-    }
-
-    .btn:disabled {
-      background: #ccc;
-      cursor: not-allowed;
-    }
-
     .data-count {
       background: #f8f9fa;
       padding: 0.75rem;
@@ -167,8 +115,48 @@
       color: #495057;
     }
 
+    .table-info {
+      background: #f8f9fa;
+      padding: 1rem;
+      border-radius: 4px;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+    }
+
+    .table-info h4 {
+      margin: 0 0 0.5rem 0;
+      color: #2c3e50;
+    }
+
+    .table-info p {
+      margin: 0.25rem 0;
+      color: #6c757d;
+    }
+
+    .layer-controls {
+      background: #f8f9fa;
+      padding: 1rem;
+      border-radius: 4px;
+      margin-bottom: 1rem;
+    }
+
+    .layer-controls h4 {
+      margin: 0 0 0.5rem 0;
+      color: #2c3e50;
+    }
+
+    .layer-toggle {
+      display: flex;
+      align-items: center;
+      margin: 0.5rem 0;
+    }
+
+    .layer-toggle input[type="checkbox"] {
+      margin-right: 0.5rem;
+    }
+
     .popup-content {
-      max-width: 250px;
+      max-width: 280px;
     }
 
     .popup-content h4 {
@@ -195,12 +183,19 @@
       padding: 10px;
       border-radius: 5px;
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+      max-width: 200px;
+    }
+
+    .legend h4 {
+      margin: 0 0 10px 0;
+      font-size: 0.9rem;
     }
 
     .legend-item {
       display: flex;
       align-items: center;
       margin: 5px 0;
+      font-size: 0.8rem;
     }
 
     .legend-icon {
@@ -210,6 +205,22 @@
       display: flex;
       align-items: center;
       justify-content: center;
+    }
+
+    .legend-section {
+      margin-bottom: 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .legend-section:last-child {
+      border-bottom: none;
+    }
+
+    .legend-title {
+      font-weight: bold;
+      margin-bottom: 5px;
+      color: #2c3e50;
     }
 
     @media (max-width: 768px) {
@@ -239,9 +250,7 @@
 
 <body>
   <div class="header">
-    <h1>🗺️ Geovisor de afectaciones en el cantón Loja - Coordinación de Gestión de Riesgos-Ing Millan Paul Alverca
-      Gaona</h1>
-
+    <h1>🗺️ Geovisor de afectaciones Cantón Loja- Coordinación de Gestión de Riesgos-Ing Millan Paul Alverca Gaona</h1>
   </div>
 
   <div class="container">
@@ -252,177 +261,142 @@
       <div class="sidebar-content">
         <div id="status" class="status loading">🔎 Conectando a la base de datos...</div>
 
-        <div class="data-count" id="dataCount">
-          Datos cargados: <span id="recordCount">0</span>
+        <div class="data-count">
+          <div>Afectaciones : <span id="pointCount">0</span></div>
+          <div>Área de influencia : <span id="polygonCount">0</span></div>
         </div>
 
-        <div class="filters">
-          <div class="filter-group">
-            <label for="anioFilter">Año:</label>
-            <select id="anioFilter">
-              <option value="">Todos los años</option>
-            </select>
+        <div class="layer-controls">
+          <h4>Capas Visibles</h4>
+          <div class="layer-toggle">
+            <input type="checkbox" id="showPoints" checked>
+            <label for="showPoints">Mostrar afectaciones </label>
           </div>
-
-          <div class="filter-group">
-            <label for="sectorFilter">Sector:</label>
-            <select id="sectorFilter">
-              <option value="">Todos los sectores</option>
-            </select>
+          <div class="layer-toggle">
+            <input type="checkbox" id="showPolygons" checked>
+            <label for="showPolygons">Mostrar áreas de influencia</label>
           </div>
+        </div>
 
-          <div class="filter-group">
-            <label for="eventoFilter">Tipo de Evento:</label>
-            <select id="eventoFilter">
-              <option value="">Todos los eventos</option>
-            </select>
-          </div>
-
-          <div class="filter-group">
-            <label for="afectacionFilter">Afectación:</label>
-            <select id="afectacionFilter">
-              <option value="">Todas las afectaciones</option>
-            </select>
-          </div>
-
-          <div class="filter-group">
-            <label for="estadoFilter">Estado:</label>
-            <select id="estadoFilter">
-              <option value="">Todos los estados</option>
-            </select>
-          </div>
-
-          <div class="filter-group">
-            <label for="prioridadFilter">Prioridad:</label>
-            <select id="prioridadFilter">
-              <option value="">Todas las prioridades</option>
-              <option value="ALTA">ALTA</option>
-              <option value="MEDIA">MEDIA</option>
-              <option value="BAJA">BAJA</option>
-            </select>
-          </div>
-
-          <div class="filter-group">
-            <label for="searchFilter">Buscar:</label>
-            <input type="text" id="searchFilter" placeholder="Buscar en descripción...">
-          </div>
-
-          <button class="btn" onclick="aplicarFiltros()">Aplicar Filtros</button>
+        <div class="table-info">
+          <h4>Información de las Tablas</h4>
+          <p><strong>Afectaciones:</strong> Registros puntuales de gestión de riesgos</p>
+          <p><strong>Área de influencia:</strong> Polígonos de áreas afectadas</p>
         </div>
       </div>
     </div>
 
     <div class="map-container">
       <div id="map"></div>
-      <!--<div class="legend">
-        <h4>Leyenda</h4>
-        <div class="legend-item">
-          <div class="legend-icon" style="color: #1e90ff;"><i class="fas fa-house-flood"></i></div>
-          <span>Inundación</span>
+      <div class="legend">
+        <div class="legend-section">
+          <div class="legend-title">Afectaciones</div>
+          <div class="legend-item">
+            <div class="legend-icon" style="background-color: #dc3545; width: 16px; height: 16px; border-radius: 50%;"></div>
+            <span>Prioridad Alta</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-icon" style="background-color: #ffc107; width: 16px; height: 16px; border-radius: 50%;"></div>
+            <span>Prioridad Media</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-icon" style="background-color: #28a745; width: 16px; height: 16px; border-radius: 50%;"></div>
+            <span>Prioridad Baja</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-icon" style="background-color: #007bff; width: 16px; height: 16px; border-radius: 50%;"></div>
+            <span>Sin prioridad</span>
+          </div>
         </div>
-        <div class="legend-item">
-          <div class="legend-icon" style="color: #8b4513;"><i class="fas fa-hill-rockslide"></i></div>
-          <span>Movimiento de masas</span>
-        </div>
-        <div class="legend-item">
-          <div class="legend-icon" style="color: #ff4500;"><i class="fas fa-building-collapse"></i></div>
-          <span>Colapso estructural</span>
-        </div>
-        <div class="legend-item">
-          <div class="legend-icon" style="color: #228b22;"><i class="fas fa-tree"></i></div>
-          <span>Área verde</span>
-        </div>
-        <div class="legend-item">
-          <div class="legend-icon" style="color: #4169e1;"><i class="fas fa-home"></i></div>
-          <span>Vivienda</span>
-        </div>
-        <div class="legend-item">
-          <div class="legend-icon" style="color: #a0522d;"><i class="fas fa-map"></i></div>
-          <span>Predio</span>
+        <div class="legend-section">
+          <div class="legend-title">Área de influencia</div>
+          <div class="legend-item">
+            <div class="legend-icon" style="background-color: rgba(255, 0, 0, 0.3); border: 2px solid #ff0000; width: 16px; height: 16px;"></div>
+            <span>Influencia</span>
+          </div>
         </div>
       </div>
-    </div>-->
     </div>
+  </div>
 
-    <!-- Leaflet JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+  <!-- Leaflet JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 
-    <script>
-      // Configuración Supabase
-      const SUPABASE_URL = 'https://zpllugprxjqohnmxhizq.supabase.co';
-      const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwbGx1Z3ByeGpxb2hubXhoaXpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEzMjk0NTYsImV4cCI6MjA2NjkwNTQ1Nn0.wKZ1AgPUZMy178r75N2frJlJl6wbkrjCOk4m4MVqmEs';
+  <script>
+    // Configuración Supabase
+    const SUPABASE_URL = 'https://zpllugprxjqohnmxhizq.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwbGx1Z3ByeGpxb2hubXhoaXpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEzMjk0NTYsImV4cCI6MjA2NjkwNTQ1Nn0.wKZ1AgPUZMy178r75N2frJlJl6wbkrjCOk4m4MVqmEs';
 
-      // Variables globales
-      let map;
-      let allData = [];
-      let filteredData = [];
-      let markersLayer;
+    // Variables globales
+    let map;
+    let pointData = [];
+    let polygonData = [];
+    let markersLayer;
+    let polygonsLayer;
 
-      // Colores para marcadores según prioridad
-      const PRIORITY_COLORS = {
-        'ALTA': '#dc3545',    // Rojo
-        'MEDIA': '#ffc107',   // Amarillo
-        'BAJA': '#28a745',    // Verde
-        'DEFAULT': '#007bff'  // Azul (por defecto)
-      };
+    // Colores para marcadores según prioridad
+    const PRIORITY_COLORS = {
+      'ALTA': '#dc3545',
+      'MEDIA': '#ffc107',
+      'BAJA': '#28a745',
+      'DEFAULT': '#007bff'
+    };
 
-      // Iconos por tipo de evento
-      const EVENT_ICONS = {
-        'INUNDACIÓN': { icon: 'house-flood', color: '#1e90ff' },
-        'MOVIMIENTO DE MASAS': { icon: 'hill-rockslide', color: '#8b4513' },
-        'COLAPSO ESTRUCTURAL': { icon: 'building-collapse', color: '#ff4500' },
-        'DESLIZAMIENTO': { icon: 'hill-rockslide', color: '#8b4513' },
-        'SISMO': { icon: 'house-earthquake', color: '#9932cc' },
-        'INCENDIO': { icon: 'fire', color: '#ff4500' },
-        'DEFAULT': { icon: 'triangle-exclamation', color: '#007bff' }
-      };
+    // Iconos por tipo de evento
+    const EVENT_ICONS = {
+      'Inundación': { icon: 'water', color: '#1e90ff' },
+      'Movimiento en masas': { icon: 'mountain', color: '#8b4513' },
+      'Amenaza de colapso estructural': { icon: 'building', color: '#ff4500' },
+      'Sismo': { icon: 'house-crack', color: '#9932cc' },
+      'Incendio': { icon: 'fire', color: '#ff4500' },
+      'DEFAULT': { icon: 'exclamation-triangle', color: '#007bff' }
+    };
 
-      // Iconos por tipo de afectación
-      const AFECTACION_ICONS = {
-        'VIVIENDA': { icon: 'home', color: '#4169e1' },
-        'PREDIO': { icon: 'map', color: '#a0522d' },
-        'ÁREA VERDE': { icon: 'tree', color: '#228b22' },
-        'INFRAESTRUCTURA VIAL': { icon: 'road', color: '#696969' },
-        'EQUIPAMIENTO PÚBLICO': { icon: 'building', color: '#4682b4' },
-        'DEFAULT': { icon: 'location-dot', color: '#007bff' }
-      };
+    // Iconos por tipo de afectación
+    const AFECTACION_ICONS = {
+      'Vivienda': { icon: 'home', color: '#4169e1' },
+      'Predio': { icon: 'map', color: '#a0522d' },
+      'ÁREA VERDE': { icon: 'tree', color: '#228b22' },
+      'Vialidad': { icon: 'road', color: '#696969' },
+      'EQUIPAMIENTO PÚBLICO': { icon: 'building', color: '#4682b4' },
+      'DEFAULT': { icon: 'location-dot', color: '#007bff' }
+    };
 
-      // Función para obtener el icono adecuado
-      function getCustomIcon(item) {
-        // Determinar el tipo de evento (en mayúsculas para estandarizar)
-        const evento = (item.EVENTO || '').toUpperCase().trim();
-        const afectacion = (item.AFECTACION || '').toUpperCase().trim();
-        const prioridad = (item.PRIORIDAD || '').toUpperCase().trim();
+    // Función para obtener el icono adecuado para puntos
+    function getCustomIcon(item) {
+      const evento = (item.EVENTO || '').toLowerCase();
+      const afectacion = (item.AFECTACION || item.afectacion || '').toUpperCase().trim();
+      const prioridad = (item.PRIORIDAD || '').toUpperCase().trim();
 
-        // Buscar icono para el evento
-        let iconInfo = EVENT_ICONS.DEFAULT;
-        for (const [key, value] of Object.entries(EVENT_ICONS)) {
-          if (evento.includes(key)) {
+      // Buscar icono para el evento
+      let iconInfo = EVENT_ICONS.DEFAULT;
+      for (const [key, value] of Object.entries(EVENT_ICONS)) {
+        if (evento.includes(key.toLowerCase())) {
+          iconInfo = value;
+          break;
+        }
+      }
+
+      // Si no encontramos un icono específico para el evento, probamos con la afectación
+      if (iconInfo === EVENT_ICONS.DEFAULT) {
+        for (const [key, value] of Object.entries(AFECTACION_ICONS)) {
+          if (afectacion.includes(key)) {
             iconInfo = value;
             break;
           }
         }
+      }
 
-        // Si no encontramos un icono específico para el evento, probamos con la afectación
-        if (iconInfo === EVENT_ICONS.DEFAULT) {
-          for (const [key, value] of Object.entries(AFECTACION_ICONS)) {
-            if (afectacion.includes(key)) {
-              iconInfo = value;
-              break;
-            }
-          }
-        }
+      // Color según prioridad
+      const color = PRIORITY_COLORS[prioridad] || iconInfo.color || PRIORITY_COLORS.DEFAULT;
 
-        // Color según prioridad
-        const color = PRIORITY_COLORS[prioridad] || iconInfo.color || PRIORITY_COLORS.DEFAULT;
-
-        return L.divIcon({
-          className: 'custom-marker',
-          html: `
+      return L.divIcon({
+        className: 'custom-marker',
+        html: `
           <div style="
             background-color: ${color};
-            width: 24px;
-            height: 24px;
+            width: 20px;
+            height: 20px;
             border-radius: 50%;
             border: 2px solid white;
             box-shadow: 0 0 5px rgba(0,0,0,0.3);
@@ -430,248 +404,310 @@
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 12px;
+            font-size: 10px;
           ">
             <i class="fas fa-${iconInfo.icon}"></i>
           </div>
         `,
-          iconSize: [24, 24],
-          iconAnchor: [12, 12]
-        });
-      }
+        iconSize: [20, 20],
+        iconAnchor: [10, 10]
+      });
+    }
 
-      // Inicializar la aplicación
-      document.addEventListener('DOMContentLoaded', () => {
-        initializeMap();
-        cargarDatos();
+    // Inicializar la aplicación
+    document.addEventListener('DOMContentLoaded', () => {
+      initializeMap();
+      cargarDatos();
+      setupLayerControls();
+    });
+
+    function initializeMap() {
+      // Inicializar mapa centrado en Loja, Ecuador
+      map = L.map('map').setView([-3.9939, -79.2042], 12);
+
+      // Agregar capa base
+      L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+        attribution: '© Google Satellite'
+      }).addTo(map);
+
+      // Inicializar capas
+      markersLayer = L.layerGroup().addTo(map);
+      polygonsLayer = L.layerGroup().addTo(map);
+    }
+
+    function setupLayerControls() {
+      const showPointsCheckbox = document.getElementById('showPoints');
+      const showPolygonsCheckbox = document.getElementById('showPolygons');
+
+      showPointsCheckbox.addEventListener('change', () => {
+        if (showPointsCheckbox.checked) {
+          map.addLayer(markersLayer);
+        } else {
+          map.removeLayer(markersLayer);
+        }
       });
 
-      function initializeMap() {
-        // Inicializar mapa centrado en Loja, Ecuador (coordenadas WGS84)
-        map = L.map('map').setView([-3.9939, -79.2042], 12);
-
-        // Agregar capa base
-        L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
-          attribution: '© OpenStreetMap contributors'
-        }).addTo(map);
-
-        // Inicializar capa de marcadores
-        markersLayer = L.layerGroup().addTo(map);
-      }
-
-      async function cargarDatos() {
-        const status = document.getElementById('status');
-
-        try {
-          status.textContent = '🔄 Cargando datos de bd_cgr...';
-          status.className = 'status loading';
-
-          // Cargar datos desde Supabase
-          const response = await fetch(`${SUPABASE_URL}/rest/v1/bd_loja_1?select=*`, {
-            headers: {
-              'apikey': SUPABASE_KEY,
-              'Authorization': `Bearer ${SUPABASE_KEY}`
-            }
-          });
-
-          if (!response.ok) {
-            throw new Error(`Error HTTP: ${response.status}`);
-          }
-
-          const data = await response.json();
-
-          if (data.length === 0) {
-            status.textContent = '⚠️ No se encontraron datos en la tabla bd_cgr';
-            status.className = 'status error';
-            return;
-          }
-
-          allData = data;
-          filteredData = [...data];
-
-          // Poblar filtros
-          poblarFiltros();
-
-          // Mostrar datos en el mapa
-          mostrarDatosEnMapa();
-
-          // Actualizar contador
-          actualizarContador();
-
-          status.textContent = `✅ ${data.length} registros cargados exitosamente`;
-          status.className = 'status success';
-
-        } catch (error) {
-          console.error('Error al cargar datos:', error);
-          status.textContent = `❌ Error: ${error.message}`;
-          status.className = 'status error';
+      showPolygonsCheckbox.addEventListener('change', () => {
+        if (showPolygonsCheckbox.checked) {
+          map.addLayer(polygonsLayer);
+        } else {
+          map.removeLayer(polygonsLayer);
         }
-      }
+      });
+    }
 
-      function poblarFiltros() {
-        // Obtener valores únicos para cada filtro
-        const anios = [...new Set(allData.map(item => item.ANIO).filter(Boolean))].sort();
-        const sectores = [...new Set(allData.map(item => item.SECTOR_BASICO).filter(Boolean))].sort();
-        const eventos = [...new Set(allData.map(item => item.EVENTO).filter(Boolean))].sort();
-        const afectaciones = [...new Set(allData.map(item => item.AFECTACION).filter(Boolean))].sort();
-        const estados = [...new Set(allData.map(item => item.ESTADO).filter(Boolean))].sort();
+    async function cargarDatos() {
+      const status = document.getElementById('status');
 
-        // Poblar select de años
-        const anioSelect = document.getElementById('anioFilter');
-        anios.forEach(anio => {
-          const option = document.createElement('option');
-          option.value = anio;
-          option.textContent = anio;
-          anioSelect.appendChild(option);
-        });
+      try {
+        status.textContent = '🔄 Cargando datos de ambas tablas...';
+        status.className = 'status loading';
 
-        // Poblar select de sectores
-        const sectorSelect = document.getElementById('sectorFilter');
-        sectores.forEach(sector => {
-          const option = document.createElement('option');
-          option.value = sector;
-          option.textContent = sector;
-          sectorSelect.appendChild(option);
-        });
-
-        // Poblar select de eventos
-        const eventoSelect = document.getElementById('eventoFilter');
-        eventos.forEach(evento => {
-          const option = document.createElement('option');
-          option.value = evento;
-          option.textContent = evento;
-          eventoSelect.appendChild(option);
-        });
-
-        // Poblar select de afectaciones
-        const afectacionSelect = document.getElementById('afectacionFilter');
-        afectaciones.forEach(afectacion => {
-          const option = document.createElement('option');
-          option.value = afectacion;
-          option.textContent = afectacion;
-          afectacionSelect.appendChild(option);
-        });
-
-        // Poblar select de estados
-        const estadoSelect = document.getElementById('estadoFilter');
-        estados.forEach(estado => {
-          const option = document.createElement('option');
-          option.value = estado;
-          option.textContent = estado;
-          estadoSelect.appendChild(option);
-        });
-      }
-
-      function mostrarDatosEnMapa() {
-        // Limpiar marcadores anteriores
-        markersLayer.clearLayers();
-
-        // Agregar marcadores para datos que tengan coordenadas
-        filteredData.forEach(item => {
-          // Obtener coordenadas (asegurando que sean números)
-          let lat = parseFloat(item.LATITUD || item.lat || item.latitude || item.geom.coordinates[1]);
-          let lng = parseFloat(item.LONGITUD || item.lng || item.longitude || item.geom.coordinates[0]);
-          console.log('Procesando item:', item);
-          console.log('Coordenadas obtenidas:', item.geom.coordinates[1]);
-          // Verificar que las coordenadas sean válidas (dentro de Ecuador)
-          // Ajustado para coordenadas WGS84 de Loja (lat: -3.5 a -4.5, lng: -78.5 a -80.5)
-          if (isNaN(lat) || isNaN(lng) || lat < -4.5 || lat > -3.5 || lng < -80.5 || lng > -78.5) {
-            // Si no son válidas, generar coordenadas aleatorias dentro del área de Loja
-            lat = -3.9939 + (Math.random() * 0.5 - 0.25); // ±0.25 grados de latitud
-            lng = -79.2042 + (Math.random() * 0.5 - 0.25); // ±0.25 grados de longitud
-            console.log('Procesando item:', item);
-            
+        // Cargar datos de puntos (bd_loja_1)
+        const pointResponse = await fetch(`${SUPABASE_URL}/rest/v1/bd_loja_1?select=*`, {
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`
           }
+        });
 
-          // Crear marcador con icono personalizado
-          const marker = L.marker([lat, lng], {
-            icon: getCustomIcon(item)
+        // Cargar datos de polígonos (pol_afect)
+        const polygonResponse = await fetch(`${SUPABASE_URL}/rest/v1/pol_afect?select=*`, {
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`
+          }
+        });
+
+        if (!pointResponse.ok || !polygonResponse.ok) {
+          throw new Error('Error al cargar datos de las tablas');
+        }
+
+        pointData = await pointResponse.json();
+        polygonData = await polygonResponse.json();
+
+        // Mostrar datos en el mapa
+        mostrarPuntosEnMapa();
+        mostrarPoligonosEnMapa();
+
+        // Actualizar contadores
+        actualizarContadores();
+
+        // Ajustar vista del mapa
+        ajustarVistaMapa();
+
+        status.textContent = `✅ Datos cargados: ${pointData.length} puntos, ${polygonData.length} polígonos`;
+        status.className = 'status success';
+
+      } catch (error) {
+        console.error('Error al cargar datos:', error);
+        status.textContent = `❌ Error: ${error.message}`;
+        status.className = 'status error';
+      }
+    }
+
+    function mostrarPuntosEnMapa() {
+      // Limpiar marcadores anteriores
+      markersLayer.clearLayers();
+
+      // Agregar marcadores para datos que tengan coordenadas
+      pointData.forEach(item => {
+        let lat, lng;
+
+        // Intentar obtener coordenadas de diferentes campos posibles
+        if (item.geom && item.geom.coordinates) {
+          // Formato GeoJSON
+          lng = parseFloat(item.geom.coordinates[0]);
+          lat = parseFloat(item.geom.coordinates[1]);
+        } else {
+          // Campos individuales
+          lat = parseFloat(item.LATITUD || item.lat || item.latitude);
+          lng = parseFloat(item.LONGITUD || item.lng || item.longitude);
+        }
+
+        // Verificar que las coordenadas sean válidas para el área de Loja
+        if (isNaN(lat) || isNaN(lng) || lat < -4.5 || lat > -3.5 || lng < -80.5 || lng > -78.5) {
+          // Generar coordenadas aleatorias dentro del área de Loja
+          lat = -3.9939 + (Math.random() * 0.4 - 0.2);
+          lng = -79.2042 + (Math.random() * 0.4 - 0.2);
+        }
+
+        // Crear marcador con icono personalizado
+        const marker = L.marker([lat, lng], {
+          icon: getCustomIcon(item)
+        });
+
+        // Crear popup con información
+        const popupContent = crearPopupContentPuntos(item, lat, lng);
+        marker.bindPopup(popupContent);
+
+        // Agregar marcador a la capa
+        markersLayer.addLayer(marker);
+      });
+    }
+
+    function mostrarPoligonosEnMapa() {
+      // Limpiar polígonos anteriores
+      polygonsLayer.clearLayers();
+
+      // Agregar polígonos
+      polygonData.forEach(item => {
+        let polygon;
+
+        if (item.geom && item.geom.coordinates) {
+          // Datos GeoJSON
+          const coordinates = item.geom.coordinates;
+          
+          if (item.geom.type === 'Polygon') {
+            // Convertir coordenadas GeoJSON a formato Leaflet
+            const leafletCoords = coordinates[0].map(coord => [coord[1], coord[0]]);
+            polygon = L.polygon(leafletCoords, {
+              color: '#ff0000',
+              fillColor: '#ff0000',
+              fillOpacity: 0.3,
+              weight: 2
+            });
+          } else if (item.geom.type === 'MultiPolygon') {
+            // Manejar MultiPolygon
+            const leafletCoords = coordinates.map(poly => 
+              poly[0].map(coord => [coord[1], coord[0]])
+            );
+            polygon = L.polygon(leafletCoords, {
+              color: '#ff0000',
+              fillColor: '#ff0000',
+              fillOpacity: 0.3,
+              weight: 2
+            });
+          }
+        } else {
+          // Si no hay geometría válida, crear un polígono de ejemplo en Loja
+          const centerLat = -3.9939 + (Math.random() * 0.2 - 0.1);
+          const centerLng = -79.2042 + (Math.random() * 0.2 - 0.1);
+          const size = 0.005; // Tamaño del polígono
+
+          polygon = L.polygon([
+            [centerLat - size, centerLng - size],
+            [centerLat - size, centerLng + size],
+            [centerLat + size, centerLng + size],
+            [centerLat + size, centerLng - size]
+          ], {
+            color: '#ff0000',
+            fillColor: '#ff0000',
+            fillOpacity: 0.3,
+            weight: 2
           });
+        }
 
+        if (polygon) {
           // Crear popup con información
-          const popupContent = crearPopupContent(item, lat, lng);
-          marker.bindPopup(popupContent);
+          const popupContent = crearPopupContentPoligonos(item);
+          polygon.bindPopup(popupContent);
 
-          // Agregar marcador a la capa
-          markersLayer.addLayer(marker);
-        });
-
-        // Ajustar vista del mapa para mostrar todos los marcadores
-        if (markersLayer.getLayers().length > 0) {
-          const group = new L.featureGroup(markersLayer.getLayers());
-          map.fitBounds(group.getBounds().pad(0.1));
+          // Agregar polígono a la capa
+          polygonsLayer.addLayer(polygon);
         }
-      }
-
-      function crearPopupContent(item, lat, lng) {
-        // Formatear coordenadas en grados, minutos, segundos
-        const formatCoords = (coord) => {
-          const absolute = Math.abs(coord);
-          const degrees = Math.floor(absolute);
-          const minutesNotTruncated = (absolute - degrees) * 60;
-          const minutes = Math.floor(minutesNotTruncated);
-          const seconds = Math.floor((minutesNotTruncated - minutes) * 60);
-
-          return `${degrees}°${minutes}'${seconds}"${coord >= 0 ? 'N' : 'S'}`;
-        };
-
-        const latFormatted = formatCoords(lat);
-        const lngFormatted = formatCoords(lng);
-
-        return `
-        <div class="popup-content">
-          <h4>${item.EVENTO || 'Registro CGR '}</h4>
-          ${item.ANIO ? `<p><span class="label">Año:</span> ${item.ANIO}</p>` : ''}
-          ${item.SECTOR_BASICO ? `<p><span class="label">Sector:</span> ${item.SECTOR_BASICO}  </p>` : ''}
-          ${item.AFECTACION ? `<p><span class="label">Afectación:</span> ${item.AFECTACION}</p>` : ''}
-          ${item.ESTADO ? `<p><span class="label">Estado:</span> ${item.ESTADO}</p>` : ''}
-          ${item.PRIORIDAD ? `<p><span class="label">Prioridad:</span> ${item.PRIORIDAD} </p>` : ''}
-          <p><span class="label">Coordenadas (WGS84):</span><br>
-          ${lat.toFixed(6)}, ${lng.toFixed(6)}<br>
-          ${latFormatted}, ${lngFormatted}</p>
-          ${item.DESCRIPCION ? `<p><span class="label">Descripción:</span> ${item.DESCRIPCION.substring(0, 100)}${item.DESCRIPCION.length > 100 ? '...' : ''}</p>` : ''}
-          ${item.FECHA ? `<p><span class="label">Fecha:</span> ${new Date(item.FECHA).toLocaleDateString()}</p>` : ''}
-        </div>
-      `;
-      }
-
-      function aplicarFiltros() {
-        const anio = document.getElementById('anioFilter').value;
-        const sector = document.getElementById('sectorFilter').value;
-        const evento = document.getElementById('eventoFilter').value;
-        const afectacion = document.getElementById('afectacionFilter').value;
-        const estado = document.getElementById('estadoFilter').value;
-        const prioridad = document.getElementById('prioridadFilter').value;
-        const busqueda = document.getElementById('searchFilter').value.toLowerCase();
-
-        filteredData = allData.filter(item => {
-          const matchAnio = !anio || item.ANIO == anio;
-          const matchSector = !sector || item.SECTOR_BASICO == sector;
-          const matchEvento = !evento || item.EVENTO == evento;
-          const matchAfectacion = !afectacion || item.AFECTACION == afectacion;
-          const matchEstado = !estado || item.ESTADO == estado;
-          const matchPrioridad = !prioridad || (item.PRIORIDAD && item.PRIORIDAD.toUpperCase() === prioridad);
-          const matchBusqueda = !busqueda ||
-            (item.DESCRIPCION && item.DESCRIPCION.toLowerCase().includes(busqueda)) ||
-            (item.EVENTO && item.EVENTO.toLowerCase().includes(busqueda));
-
-          return matchAnio && matchSector && matchEvento && matchAfectacion && matchEstado && matchPrioridad && matchBusqueda;
-        });
-
-        mostrarDatosEnMapa();
-        actualizarContador();
-      }
-
-      function actualizarContador() {
-        document.getElementById('recordCount').textContent = filteredData.length;
-      }
-
-      // Agregar listener para filtro de búsqueda en tiempo real
-      document.getElementById('searchFilter').addEventListener('input', () => {
-        clearTimeout(window.searchTimeout);
-        window.searchTimeout = setTimeout(aplicarFiltros, 300);
       });
-    </script>
+    }
+
+    function crearPopupContentPuntos(item, lat, lng) {
+      const formatCoords = (coord) => {
+        return coord.toFixed(6);
+      };
+
+      let content = `<div class="popup-content">`;
+      
+      // Título
+      const titulo = item.EVENTO || item.id || 'Registro de Punto';
+      content += `<h4>${titulo}</h4>`;
+      
+      // Mostrar campos principales
+      const camposPrincipales = ['FECHA', 'ANIO', 'SECTOR_BASICO', 'AFECTACION', 'ESTADO', 'PRIORIDAD'];
+      
+      camposPrincipales.forEach(campo => {
+        if (item[campo]) {
+          let valor = item[campo];
+          if (campo === 'FECHA') {
+            valor = new Date(valor).toLocaleDateString();
+          }
+          content += `<p><span class="label">${formatFieldName(campo)}:</span> ${valor}</p>`;
+        }
+      });
+
+      // Coordenadas
+      content += `<p><span class="label">Coordenadas:</span><br>${formatCoords(lat)}, ${formatCoords(lng)}</p>`;
+
+      // Descripción si existe
+      if (item.descripcion) {
+        const desc = item.descripcion.length > 100 ? 
+          item.descripcion.substring(0, 100) + '...' : 
+          item.descripcion;
+        content += `<p><span class="label">Descripción:</span> ${desc}</p>`;
+      }
+
+      content += `</div>`;
+      return content;
+    }
+
+    function crearPopupContentPoligonos(item) {
+      let content = `<div class="popup-content">`;
+      
+      // Título
+      const titulo = item.tipo || item.desc || item.id || 'Polígono de Afectación';
+      content += `<h4>${titulo}</h4>`;
+      
+      // Mostrar campos disponibles
+      const campos = ['id', 'tipo', 'desc', 'fid'];
+      
+      campos.forEach(campo => {
+        if (item[campo]) {
+          let valor = item[campo];
+          let label = formatFieldName(campo);
+          content += `<p><span class="label">${label}:</span> ${valor}</p>`;
+        }
+      });
+
+      // Información adicional
+      content += `<p><span class="label">Tipo:</span> Polígono de área afectada</p>`;
+
+      content += `</div>`;
+      return content;
+    }
+
+    function formatFieldName(field) {
+      const fieldNames = {
+        'ANIO': 'Año',
+        'SECTOR_BASICO': 'Sector',
+        'EVENTO': 'Tipo de Evento',
+        'AFECTACION': 'Afectación',
+        'ESTADO': 'Estado',
+        'PRIORIDAD': 'Prioridad',
+        'FECHA': 'Fecha',
+        'id': 'ID',
+        'tipo': 'Tipo',
+        'desc': 'Descripción',
+        'fid': 'ID Único'
+      };
+      return fieldNames[field] || field;
+    }
+
+    function actualizarContadores() {
+      document.getElementById('pointCount').textContent = pointData.length;
+      document.getElementById('polygonCount').textContent = polygonData.length;
+    }
+
+    function ajustarVistaMapa() {
+      const allLayers = [];
+      
+      // Agregar todas las capas para calcular bounds
+      markersLayer.eachLayer(layer => allLayers.push(layer));
+      polygonsLayer.eachLayer(layer => allLayers.push(layer));
+
+      if (allLayers.length > 0) {
+        const group = new L.featureGroup(allLayers);
+        map.fitBounds(group.getBounds().pad(0.1));
+      }
+    }
+  </script>
 </body>
 
 </html>
