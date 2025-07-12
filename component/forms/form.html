@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geoportal de Reportes - Ecuador</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 300;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #c0392b;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Mapa */
+        #map {
+            height: calc(100vh - 60px);
+            width: 100%;
+        }
+
+        /* Ventana flotante del formulario */
+        .floating-form {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            width: 350px;
+            max-height: calc(100vh - 120px);
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            overflow: hidden;
+        }
+
+        .floating-form.active {
+            transform: translateX(0);
+        }
+
+        .form-header {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .form-header h2 {
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0;
+            width: 25px;
+            height: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .form-content {
+            padding: 20px;
+            max-height: calc(100vh - 200px);
+            overflow-y: auto;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .form-group textarea {
+            height: 80px;
+            resize: vertical;
+        }
+
+        .coordinates-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .coordinates-group>div {
+            flex: 1;
+        }
+
+        .location-btn {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-bottom: 10px;
+            width: 100%;
+            transition: all 0.3s;
+        }
+
+        .location-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            transition: all 0.3s;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .submit-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Mensaje de estado */
+        .message {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* Panel de información */
+        .info-panel {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            max-width: 300px;
+            z-index: 1000;
+        }
+
+        .info-panel h3 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+            font-size: 16px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .legend-color {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .floating-form {
+                width: calc(100% - 40px);
+                right: 20px;
+                left: 20px;
+                transform: translateY(100vh);
+            }
+
+            .floating-form.active {
+                transform: translateY(0);
+            }
+
+            .header h1 {
+                font-size: 18px;
+            }
+
+            .info-panel {
+                position: relative;
+                bottom: auto;
+                left: auto;
+                margin: 10px;
+                max-width: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1>🇪🇨 Geoportal de Reportes Ciudadanos - Ecuador</h1>
+        <div class="header-controls">
+            <button class="btn btn-secondary" onclick="cargarReportes()">🔄 Actualizar</button>
+            <button class="btn btn-primary" onclick="toggleForm()">📝 Nuevo Reporte</button>
+        </div>
+    </div>
+
+    <!-- Mapa -->
+    <div id="map"></div>
+
+    <!-- Ventana flotante del formulario -->
+    <div class="floating-form" id="floatingForm">
+        <div class="form-header">
+            <h2>Nuevo Reporte</h2>
+            <button class="close-btn" onclick="toggleForm()">×</button>
+        </div>
+        <div class="form-content">
+            <form id="reporteForm">
+                <div class="form-group">
+                    <label for="gnom">Nombre:</label>
+                    <input type="text" id="gnom" name="gnom" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="parroquia">Parroquia:</label>
+                    <select id="parroquia" name="parroquia" required>
+                        <option value="">Seleccione una parroquia</option>
+                        <option value="Sucre">Sucre</option>
+                        <option value="Jimbilla">Jimbilla</option>
+                        <option value="Punzara">Punzara</option>
+                        <option value="Carigan">Carigan</option>
+                        <option value="El valle">El Valle</option>
+                        <option value="El Cisne">El Cisne</option>                
+                        <option value="Sagrario">Sagrario</option>            
+                        <option value="San Sebastián">San Sebastián</option>            
+                        <option value="Chantaco">Chantaco</option>            
+                        <option value="Quinara">Quinara</option>            
+                        <option value="Yangana">Yangana</option>         
+                        <option value="Chuquiribamba">Chuquiribamba</option>
+                        <!-- Agregar más opciones según sea necesario -->
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="prioridad">Prioridad:</label>
+                    <select id="prioridad" name="prioridad" required>
+                        <option value="">Seleccione prioridad</option>
+                        <option value="Alta">Alta</option>
+                        <option value="Media">Media</option>
+                        <option value="Baja">Baja</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="afectacion">Afectación:</label>
+                    <select id="afectacion" name="afectacion" required>
+                        <option value="">Seleccione tipo de afectación</option>
+                        <option value="Viviendas">Viviendas</option>    
+                        <option value="Vías">Predio Privado</option>                            
+                        <option value="Vías">Area Verde</option>                   
+                        <option value="Vías">Infraestructura Vial</option>
+                        <option value="Vías">Equipamento</option>
+                        <option value="Servicios">Servicios de AAPP/AALL/AASS</option>
+                        <option value="Otros">Otros</option>                       
+                    
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="evento">Evento:</label>
+                    <select id="evento" name="evento" required>
+                        <option value="">Seleccione tipo de evento</option>
+                        <option value="Inundación">Inundación</option>
+                        <option value="Aluvión">Aluvión</option>
+                        <option value="Movimiento en Masa">Deslizamiento</option>
+                        <option value="Colapso estructural">Colapso estructural</option>
+                        <option value="Eroción Hidrica">Erosión Hidrica</option>
+                        <option value="Acción Antropica">Acción Antropica</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="estado">Estado:</label>
+                    <select id="estado" name="estado" required>
+                        <option value="">Seleccione estado</option>
+                        <option value="Pendiente">Pendiente</option>
+                        <option value="Atendido">Atendido</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="sector_barrio">Sector/Barrio:</label>
+                    <input type="text" id="sector_barrio" name="sector_barrio" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="dimenciones">Dimenciones:</label>
+                    <input type="text" id="dimenciones" name="dimenciones">
+                </div>
+
+                <div class="form-group">
+                    <label for="volumen_aprox">Volumen aproximado:</label>
+                    <input type="text" id="volumen_aprox" name="volumen_aprox">
+                </div>
+
+                <div class="form-group">
+                    <label for="INFORMACION_AFECTADOS">Información de afectación:</label>
+                    <textarea id="INFORMACION_AFECTADOS" name="INFORMACION_AFECTADOS"
+                        placeholder="Describa la afectación..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="descripcion">Descripción:</label>
+                    <textarea id="descripcion" name="descripcion" placeholder="Describa el problema..."></textarea>
+                </div>
+
+                <button type="button" class="location-btn" onclick="obtenerUbicacion()">
+                    📍 Obtener mi ubicación
+                </button>
+
+                <div class="coordinates-group">
+                    <div class="form-group">
+                        <label for="latitud">Latitud:</label>
+                        <input type="number" id="latitud" name="latitud" step="any" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="longitud">Longitud:</label>
+                        <input type="number" id="longitud" name="longitud" step="any" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submitBtn">Enviar Reporte</button>
+            </form>
+
+            <div id="message" class="message" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- Panel de información/leyenda -->
+    <div class="info-panel">
+        <h3>Tipos de Eventos</h3>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #3498db;"></div>
+            <span>Inundación</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #e74c3c;"></div>
+            <span>Deslizamiento</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #f39c12;"></div>
+            <span>Daño estructural</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #9b59b6;"></div>
+            <span>Otros</span>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        // Configuración de Supabase
+        const SUPABASE_URL = 'https://zpllugprxjqohnmxhizq.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwbGx1Z3ByeGpxb2hubXhoaXpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEzMjk0NTYsImV4cCI6MjA2NjkwNTQ1Nn0.wKZ1AgPUZMy178r75N2frJlJl6wbkrjCOk4m4MVqmEs';
+        // Variables globales
+        let map;
+        let reportesLayer;
+        // Colores por tipo de evento
+        const COLORES_TIPOS = {
+            'Inundación': '#3498db',
+            'Deslizamiento': '#e74c3c',
+            'Daño estructural': '#f39c12',
+            'Otro': '#9b59b6'
+        };
+
+        // Inicializar el mapa
+        function initMap() {
+            // Centrar en Ecuador (Quito)
+            map = L.map('map').setView([-0.1807, -78.4678], 7);
+
+            // Añadir capa base
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            // Inicializar capa de reportes
+            reportesLayer = L.layerGroup().addTo(map);
+
+            // Cargar reportes iniciales
+            cargarReportes();
+
+            // Evento click en el mapa para obtener coordenadas
+            map.on('click', function (e) {
+                document.getElementById('latitud').value = e.latlng.lat.toFixed(6);
+                document.getElementById('longitud').value = e.latlng.lng.toFixed(6);
+                if (!document.getElementById('floatingForm').classList.contains('active')) {
+                    toggleForm();
+                }
+            });
+        }
+
+        // Cargar reportes desde Supabase
+        async function cargarReportes() {
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/bd_loja_1?select=*`, {
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error al cargar reportes');
+                }
+
+                const reportes = await response.json();
+                mostrarReportesEnMapa(reportes);
+            } catch (error) {
+                console.error('Error cargando reportes:', error);
+                mostrarMensaje('Error al cargar reportes: ' + error.message, 'error');
+            }
+        }
+
+        // Mostrar reportes en el mapa
+        function mostrarReportesEnMapa(reportes) {
+            // Limpiar capa anterior
+            reportesLayer.clearLayers();
+
+            reportes.forEach(reporte => {
+                if (reporte.UTM_X && reporte.UTM_Y) {
+                    const color = COLORES_TIPOS[reporte.EVENTO] || '#95a5a6';
+
+                    const marker = L.circleMarker([reporte.UTML_Y, reporte.UTML_X], {
+                        radius: 8,
+                        fillColor: color,
+                        color: '#fff',
+                        weight: 2,
+                        opacity: 1,
+                        fillOpacity: 0.8
+                    });
+
+                    const fecha = reporte.FECHA ? new Date(reporte.FECHA).toLocaleDateString('es-ES') : 'Sin fecha';
+                    const popupContent = `
+                        <div style="min-width: 200px;">
+                            <h4 style="margin: 0 0 10px 0; color: ${color};">
+                                ${reporte.EVENTO || 'Sin tipo'}
+                            </h4>
+                            <p><strong>Reportado por:</strong> ${reporte.gnom || 'Anónimo'}</p>
+                            <p><strong>Parroquia:</strong> ${reporte.PARROQUIA || 'No especificada'}</p>
+                            <p><strong>Fecha:</strong> ${fecha}</p>
+                            <p><strong>Prioridad:</strong> ${reporte.PRIORIDAD || 'No especificada'}</p>
+                            <p><strong>Estado:</strong> ${reporte.ESTADO || 'No especificado'}</p>
+                            ${reporte.descripción ? `<p><strong>Descripción:</strong> ${reporte.descripción}</p>` : ''}
+                            <a href="https://maps.google.com/?q=${reporte.UTML_Y},${reporte.UTML_X}" target="_blank" style="color: #3498db;">
+                                📍 Ver en Google Maps
+                            </a>
+                        </div>
+                    `;
+
+                    marker.bindPopup(popupContent);
+                    reportesLayer.addLayer(marker);
+                }
+            });
+        }
+
+        // Toggle del formulario flotante
+        function toggleForm() {
+            const form = document.getElementById('floatingForm');
+            form.classList.toggle('active');
+        }
+
+        // Obtener ubicación actual
+        function obtenerUbicacion() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    function (position) {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        document.getElementById('latitud').value = lat.toFixed(6);
+                        document.getElementById('longitud').value = lng.toFixed(6);
+                        map.setView([lat, lng], 15);
+                        mostrarMensaje('Ubicación obtenida correctamente', 'success');
+                    },
+                    function (error) {
+                        mostrarMensaje('Error al obtener la ubicación: ' + error.message, 'error');
+                    }
+                );
+            } else {
+                mostrarMensaje('Geolocalización no soportada', 'error');
+            }
+        }
+
+        // Mostrar mensajes
+        function mostrarMensaje(texto, tipo) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = texto;
+            messageDiv.className = 'message ' + tipo;
+            messageDiv.style.display = 'block';
+
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 5000);
+        }
+        // Crear geometría POINT para PostGIS
+        function createGeometry(lat, lng) {
+            return `POINT(${lng} ${lat})`;
+        }
+
+        // Enviar reporte a Supabase
+        async function enviarReporte(datos) {
+            try {
+                // Convertir latitud y longitud a UTM_X y UTM_Y
+                // Crear geometría para PostGIS
+                const geomWKT = createGeometry(datos.latitud, datos.longitud);
+
+                const reporteData = {
+                    geom: geomWKT,
+                    PARROQUIA: datos.parroquia,
+                    PRIORIDAD: datos.prioridad,
+                    afectacion: datos.afectacion,
+                    FECHA: new Date().toISOString(),
+                    sector_barrio: datos.sector_barrio,
+                    EVENTO: datos.evento,
+                    DIMENCIONES: datos.dimenciones,
+                    VOLUMEN_APROX: datos.volumen_aprox,
+                    ESTADO: datos.estado,
+                    INFORMACION_AFECTADOS: datos.INFORMACION_AFECTADOS,
+                    descripcion: datos.descripcion,
+
+                };
+
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/bd_loja_1`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify(reporteData)
+                });
+
+                if (!response.ok) {
+                    let errorMessage = `Error HTTP: ${response.status}`;
+                    try {
+                        const errorText = await response.text();
+                        if (errorText) {
+                            errorMessage += ` - ${errorText}`;
+                        }
+                    } catch (e) { }
+                    throw new Error(errorMessage);
+                }
+
+                return {};
+            } catch (error) {
+                console.error('Error al enviar reporte:', error);
+                throw error;
+            }
+        }
+
+        // Manejar envío del formulario
+        document.getElementById('reporteForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Enviando...';
+
+            const formData = new FormData(this);
+            const datos = {
+                //gnom: formData.get('gnom'),
+                parroquia: formData.get('parroquia'),
+                prioridad: formData.get('prioridad'),
+                afectacion: formData.get('afectacion'),
+                evento: formData.get('evento'),
+                estado: formData.get('estado'),
+                sector_barrio: formData.get('sector_barrio'),
+                dimenciones: formData.get('dimenciones'),
+                volumen_aprox: formData.get('volumen_aprox'),
+                INFORMACION_AFECTADOS: formData.get('INFORMACION_AFECTADOS'),
+                descripcion: formData.get('descripcion'),
+                latitud: parseFloat(formData.get('latitud')),
+                longitud: parseFloat(formData.get('longitud'))
+            };
+
+            try {
+                await enviarReporte(datos);
+                mostrarMensaje('Reporte enviado exitosamente', 'success');
+                this.reset();
+                toggleForm();
+                cargarReportes(); // Actualizar mapa
+            } catch (error) {
+                mostrarMensaje('Error al enviar el reporte: ' + error.message, 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Enviar Reporte';
+            }
+        });
+
+        // Inicializar cuando cargue la página
+        window.onload = function () {
+            initMap();
+        };
+    </script>
+</body>
+
+</html>
