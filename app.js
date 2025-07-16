@@ -10,7 +10,7 @@ let map;
 let pointData = [];
 let polygonData = [];
 let cooperData = [];
-let evinData=[];
+let evinData = [];
 let markersLayer;
 let polygonsLayer;
 let cooperLayer;
@@ -53,7 +53,7 @@ const EVENT_ICONS = {
   'DEFAULT': { icon: 'exclamation-triangle', color: '#007bff' }
 };
 
-const cooper_icon={
+const cooper_icon = {
   '1': { icon: 'Home', color: '#1e90ff' },
   '2': { icon: 'Terrain', color: '#8b4513' },
   '3': { icon: 'road', color: '#ff4500' },
@@ -167,7 +167,7 @@ function getCustomIconEvin(item) {
 
   // Color según prioridad
   const color = statusEvin[clase] || iconInfo.color || statusEvin.DEFAULT;
-console.log(item.status)
+  console.log(item.status)
   return L.divIcon({
     className: 'custom-marker',
     html: `
@@ -217,14 +217,14 @@ function initializeMap() {
   markersLayer = L.layerGroup().addTo(map);
   polygonsLayer = L.layerGroup().addTo(map);
   cooperLayer = L.layerGroup().addTo(map);
-  evinLayer=L.layerGroup().addTo(map);
+  evinLayer = L.layerGroup().addTo(map);
 }
 
 function setupLayerControls() {
   const showPointsCheckbox = document.getElementById('showPoints');
   const showPolygonsCheckbox = document.getElementById('showPolygons');
   const showCooperCheckbox = document.getElementById('showCooper')
- const showEvinCheckbox = document.getElementById('showEvin')
+  const showEvinCheckbox = document.getElementById('showEvin')
 
   showPointsCheckbox.addEventListener('change', () => {
     if (showPointsCheckbox.checked) {
@@ -520,7 +520,6 @@ function crearPopupContentPuntos(item, lat, lng) {
 
   // Mostrar campos principales
   const camposPrincipales = ['FECHA', 'ANIO', 'SECTOR_BASICO', 'AFECTACION', 'ESTADO', 'PRIORIDAD'];
-
   camposPrincipales.forEach(campo => {
     if (item[campo]) {
       let valor = item[campo];
@@ -530,17 +529,20 @@ function crearPopupContentPuntos(item, lat, lng) {
       content += `<p><span class="label">${formatFieldName(campo)}:</span> ${valor}</p>`;
     }
   });
-
+  // Descripción si existe
+  if (item.descripcion) {
+    /* const desc = item.descripcion.length > 100 ?
+      item.descripcion.substring(0, 100) + '...' :
+      item.descripcion; */
+    content += `<p><span class="label">Descripción:</span> ${item.descripcion}</p>`;
+  }
+  content += `<p><span class="label">Atención:</span><br>${item.depen}</p>`;
+  content += `<p><span class="label">Posibles acciones a realizar:</span><br>${item.accions}</p>`;
+  content += `<p><span class="label">Detalle:</span><br>${item.informe_tecnico}</p>`;
   // Coordenadas
   content += `<p><span class="label">Coordenadas:</span><br>${formatCoords(lat)}, ${formatCoords(lng)}</p>`;
 
-  // Descripción si existe
-  if (item.descripcion) {
-    const desc = item.descripcion.length > 100 ?
-      item.descripcion.substring(0, 100) + '...' :
-      item.descripcion;
-    content += `<p><span class="label">Descripción:</span> ${desc}</p>`;
-  }
+
 
   content += `</div>`;
   return content;
