@@ -2,8 +2,8 @@
 const SUPABASE_URL = 'https://zpllugprxjqohnmxhizq.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwbGx1Z3ByeGpxb2hubXhoaXpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEzMjk0NTYsImV4cCI6MjA2NjkwNTQ1Nn0.wKZ1AgPUZMy178r75N2frJlJl6wbkrjCOk4m4MVqmEs';
 //supaase ornato view
-const SUPABASE_0_URL = 'https://strvklqwxyenoobrqtis.supabase.co';
-const SUPABASE_0_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN0cnZrbHF3eHllbm9vYnJxdGlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0NTU2MzQsImV4cCI6MjA2ODAzMTYzNH0.tBX7U1Bsq5de9man6iCDmq-AudmYr-NC86v62tz4IKg';
+const SUPABASE_O_URL = 'https://strvklqwxyenoobrqtis.supabase.co';
+const SUPABASE_O_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN0cnZrbHF3eHllbm9vYnJxdGlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0NTU2MzQsImV4cCI6MjA2ODAzMTYzNH0.tBX7U1Bsq5de9man6iCDmq-AudmYr-NC86v62tz4IKg';
 
 // Variables globales
 let map;
@@ -11,10 +11,12 @@ let pointData = [];
 let polygonData = [];
 let cooperData = [];
 let evinData = [];
+let notifyData = [];
 let markersLayer;
 let polygonsLayer;
 let cooperLayer;
 let evinLayer;
+let notifyLayer;
 
 // Colores para marcadores según prioridad
 const PRIORITY_COLORS = {
@@ -218,6 +220,7 @@ function initializeMap() {
   polygonsLayer = L.layerGroup().addTo(map);
   cooperLayer = L.layerGroup().addTo(map);
   evinLayer = L.layerGroup().addTo(map);
+  notifyLayer = L.layerGroup().addTo(map)
 }
 
 function setupLayerControls() {
@@ -225,6 +228,7 @@ function setupLayerControls() {
   const showPolygonsCheckbox = document.getElementById('showPolygons');
   const showCooperCheckbox = document.getElementById('showCooper')
   const showEvinCheckbox = document.getElementById('showEvin')
+  const showNotifyCheckbox = document.getElementById('ShowNotify')
 
   showPointsCheckbox.addEventListener('change', () => {
     if (showPointsCheckbox.checked) {
@@ -294,8 +298,15 @@ async function cargarDatos() {
         'Authorization': `Bearer ${SUPABASE_KEY}`
       }
     });
+    // Cargar datos de puntos (EVIN)
+    const notifyResponse = await fetch(`${SUPABASE_O_URL}/rest/v1/Notifys?select=*`, {
+      headers: {
+        'apikey': SUPABASE_O_KEY,
+        'Authorization': `Bearer ${SUPABASE_O_KEY}`
+      }
+    });
 
-    if (!pointResponse.ok || !polygonResponse.ok || !cooperResponse.ok || !evinResponse.ok) {
+    if (!pointResponse.ok || !polygonResponse.ok || !cooperResponse.ok || !evinResponse.ok || !notifyResponse.ok) {
       throw new Error('Error al cargar datos de las tablas');
     }
 
@@ -303,18 +314,21 @@ async function cargarDatos() {
     polygonData = await polygonResponse.json();
     cooperData = await cooperResponse.json();
     evinData = await evinResponse.json();
+    notifyData = await notifyResponse.json();
+    console.log(notifyData)
     // Mostrar datos en el mapa
     mostrarPuntosEnMapa();
     mostrarPoligonosEnMapa();
     mostrarCooperEnMapa();
     mostrarEvinEnMapa();
+    mostrarNotify();
     // Actualizar contadores
     actualizarContadores();
 
     // Ajustar vista del mapa
     ajustarVistaMapa();
 
-    status.textContent = `✅ Datos cargados: ${pointData.length} afectacones, ${polygonData.length} áreas de influencia, ${cooperData.length} puntos de control, ${evinData.length} Evines.`;
+    status.textContent = `✅ Datos cargados: ${pointData.length} afectacones, ${polygonData.length} áreas de influencia, ${cooperData.length} puntos de control, ${evinData.length} Evines, ${notifyData.length} notificaciones realizadas.`;
     status.className = 'status success';
 
   } catch (error) {
@@ -327,11 +341,9 @@ async function cargarDatos() {
 function mostrarPuntosEnMapa() {
   // Limpiar marcadores anteriores
   markersLayer.clearLayers();
-
   // Agregar marcadores para datos que tengan coordenadas
   pointData.forEach(item => {
     let lat, lng;
-
     // Intentar obtener coordenadas de diferentes campos posibles
     if (item.geom && item.geom.coordinates) {
       // Formato GeoJSON
@@ -342,23 +354,19 @@ function mostrarPuntosEnMapa() {
       lat = parseFloat(item.LATITUD || item.lat || item.latitude);
       lng = parseFloat(item.LONGITUD || item.lng || item.longitude);
     }
-
     // Verificar que las coordenadas sean válidas para el área de Loja
     if (isNaN(lat) || isNaN(lng) || lat < -4.5 || lat > -3.5 || lng < -80.5 || lng > -78.5) {
       // Generar coordenadas aleatorias dentro del área de Loja
       lat = -3.9939 + (Math.random() * 0.4 - 0.2);
       lng = -79.2042 + (Math.random() * 0.4 - 0.2);
     }
-
     // Crear marcador con icono personalizado
     const marker = L.marker([lat, lng], {
       icon: getCustomIcon(item)
     });
-
     // Crear popup con información
     const popupContent = crearPopupContentPuntos(item, lat, lng);
     marker.bindPopup(popupContent);
-
     // Agregar marcador a la capa
     markersLayer.addLayer(marker);
   });
@@ -367,15 +375,12 @@ function mostrarPuntosEnMapa() {
 function mostrarPoligonosEnMapa() {
   // Limpiar polígonos anteriores
   polygonsLayer.clearLayers();
-
   // Agregar polígonos
   polygonData.forEach(item => {
     let polygon;
-
     if (item.geom && item.geom.coordinates) {
       // Datos GeoJSON
       const coordinates = item.geom.coordinates;
-
       if (item.geom.type === 'Polygon') {
         // Convertir coordenadas GeoJSON a formato Leaflet
         const leafletCoords = coordinates[0].map(coord => [coord[1], coord[0]]);
@@ -507,6 +512,41 @@ function mostrarEvinEnMapa() {
   });
 }
 
+function mostrarNotify() {
+  // Limpiar marcadores anteriores
+  notifyLayer.clearLayers();
+
+  // Agregar marcadores para datos que tengan coordenadas
+  notifyData.forEach(item => {
+    let lat, lng;
+    // Intentar obtener coordenadas de diferentes campos posibles
+    if (item.geom && item.geom.coordinates) {
+      // Formato GeoJSON
+      lng = parseFloat(item.geom.coordinates[0]);
+      lat = parseFloat(item.geom.coordinates[1]);
+    } else {
+      // Campos individuales
+      lat = parseFloat(item.LATITUD || item.lat || item.latitude);
+      lng = parseFloat(item.LONGITUD || item.lng || item.longitude);
+    }
+    // Verificar que las coordenadas sean válidas para el área de Loja
+    if (isNaN(lat) || isNaN(lng) || lat < -4.5 || lat > -3.5 || lng < -80.5 || lng > -78.5) {
+      // Generar coordenadas aleatorias dentro del área de Loja
+      lat = -3.9939 + (Math.random() * 0.4 - 0.2);
+      lng = -79.2042 + (Math.random() * 0.4 - 0.2);
+    }
+    // Crear marcador con icono personalizado
+    const marker = L.marker([lat, lng], {
+      icon: getCustomIconEvin(item)
+    });
+    // Crear popup con información
+    const popupContent = crearPopupContentNotify(item, lat, lng);
+    marker.bindPopup(popupContent);
+    // Agregar marcador a la capa
+    notifyLayer.addLayer(marker);
+  });
+}
+
 function crearPopupContentPuntos(item, lat, lng) {
   const formatCoords = (coord) => {
     return coord.toFixed(6);
@@ -519,7 +559,7 @@ function crearPopupContentPuntos(item, lat, lng) {
   content += `<h4>${titulo} - ${item.id} </h4>`;
 
   // Mostrar campos principales
-  const camposPrincipales = ['FECHA', 'ANIO', 'SECTOR_BASICO', 'AFECTACION', 'ESTADO', 'PRIORIDAD'];
+  const camposPrincipales = ['FECHA', 'ANIO', 'SECTOR_BASICO', 'AFECTACION', 'PRIORIDAD'];
   camposPrincipales.forEach(campo => {
     if (item[campo]) {
       let valor = item[campo];
@@ -536,18 +576,15 @@ function crearPopupContentPuntos(item, lat, lng) {
       item.descripcion; */
     content += `<p><span class="label">Descripción:</span> ${item.descripcion}</p>`;
   }
-  content += `<p><span class="label">Atención:</span><br>${item.depen}</p>`;
+  /* content += `<p><span class="label">Atención:</span><br>${item.depen}</p>`;
   content += `<p><span class="label">Posibles acciones a realizar:</span><br>${item.accions}</p>`;
-  content += `<p><span class="label">Detalle:</span><br>${item.informe_tecnico}</p>`;
+  content += `<p><span class="label">Detalle:</span><br>${item.informe_tecnico}</p>`; */
   // Coordenadas
   content += `<p><span class="label">Coordenadas:</span><br>${formatCoords(lat)}, ${formatCoords(lng)}</p>`;
-
-
 
   content += `</div>`;
   return content;
 }
-
 function crearPopupContentPoligonos(item) {
   let content = `<div class="popup-content">`;
 
@@ -572,21 +609,16 @@ function crearPopupContentPoligonos(item) {
   content += `</div>`;
   return content;
 }
-
 function crearPopupContentCooper(item, lat, lng) {
   const formatCoords = (coord) => {
     return coord.toFixed(6);
   };
-
   let content = `<div class="popup-content">`;
-
   // Título
   const titulo = item.EVENTO || `clase ${item.class}` || 'Registro de Punto';
   content += `<h4>${item.id} - ${titulo}- </h4>`;
-
   // Mostrar campos principales
   const camposPrincipales = ['fecha', , "title", 'tipe', 'desc'];
-
   camposPrincipales.forEach(campo => {
     if (item[campo]) {
       let valor = item[campo];
@@ -596,10 +628,8 @@ function crearPopupContentCooper(item, lat, lng) {
       content += `<p><span class="label">${formatFieldName(campo)}:</span> ${valor}</p>`;
     }
   });
-
   // Coordenadas
   content += `<p><span class="label">Coordenadas:</span><br>${formatCoords(lat)}, ${formatCoords(lng)}</p>`;
-
   // Descripción si existe
   if (item.descripcion) {
     const desc = item.descripcion.length > 100 ?
@@ -607,25 +637,19 @@ function crearPopupContentCooper(item, lat, lng) {
       item.descripcion;
     content += `<p><span class="label">Descripción:</span> ${desc}</p>`;
   }
-
   content += `</div>`;
   return content;
 }
-
 function crearPopupContentEvin(item, lat, lng) {
   const formatCoords = (coord) => {
     return coord.toFixed(6);
   };
-
   let content = `<div class="popup-content">`;
-
   // Título
   const titulo = item.EVENTO || `Estado ${item.Estatus}` || 'Registro de Punto';
   content += `<h4>${titulo} -${item.id} </h4>`;
-
   // Mostrar campos principales
   const camposPrincipales = ['Fecha Entrevista', 'Fecha Subida', 'Ocupacion', 'Nivel_vivienda'];
-
   camposPrincipales.forEach(campo => {
     if (item[campo]) {
       let valor = item[campo];
@@ -635,10 +659,8 @@ function crearPopupContentEvin(item, lat, lng) {
       content += `<p><span class="label">${formatFieldName(campo)}:</span> ${valor}</p>`;
     }
   });
-
   // Coordenadas
   content += `<p><span class="label">Coordenadas:</span><br>${formatCoords(lat)}, ${formatCoords(lng)}</p>`;
-
   // Descripción si existe
   if (item.descripcion) {
     const desc = item.descripcion.length > 100 ?
@@ -646,8 +668,37 @@ function crearPopupContentEvin(item, lat, lng) {
       item.descripcion;
     content += `<p><span class="label">Descripción:</span> ${desc}</p>`;
   }
-
   content += `</div>`;
+  return content;
+}
+function crearPopupContentNotify(item, lat, lng) {
+  const formatCoords = (coord) => {
+    return coord.toFixed(6);
+  };
+  let content = `<div class="popup-content">`;
+  // Título
+  const titulo = item.EVENTO || `Estado ${item.Estatus}` || 'Registro de Punto';
+  content += `<h4>${titulo} -${item.id} </h4>`;
+  // Mostrar campos principales
+  const camposPrincipales = ['Reporta', 'Boleta', 'Fecha', 'Prioridad'];
+  camposPrincipales.forEach(campo => {
+    if (item[campo]) {
+      let valor = item[campo];
+      if (campo === 'FECHA') {
+        valor = new Date(valor).toLocaleDateString();
+      }
+      content += `<p><span class="label">${formatFieldName(campo)}:</span> ${valor}</p>`;
+    }
+  });
+  // Coordenadas
+  content += `<p><span class="label">Coordenadas:</span><br>${formatCoords(lat)}, ${formatCoords(lng)}</p>`;
+  // Descripción si existe
+  if (item.descripcion) {
+    /* const desc = item.descripcion.length > 100 ?
+      item.descripcion.substring(0, 100) + '...' :
+      item.descripcion; */
+    content += `<p><span class="label">Descripción:</span> ${item.desc}</p>`;
+  }
   return content;
 }
 
@@ -673,17 +724,17 @@ function actualizarContadores() {
   document.getElementById('polygonCount').textContent = polygonData.length;
   document.getElementById('cooperCount').textContent = cooperData.length;
   document.getElementById('evinCount').textContent = evinData.length;
+  document.getElementById('notifyCount').textContent = evinData.length;
 }
-
 function ajustarVistaMapa() {
   const allLayers = [];
-
   // Agregar todas las capas para calcular bounds
   markersLayer.eachLayer(layer => allLayers.push(layer));
   polygonsLayer.eachLayer(layer => allLayers.push(layer));
   cooperLayer.eachLayer(layer => allLayers.push(layer));
   evinLayer.eachLayer(layer => allLayers.push(layer));
-
+  notifyLayer.eachLayer(layer => allLayers.push(layer));
+  
   if (allLayers.length > 0) {
     const group = new L.featureGroup(allLayers);
     map.fitBounds(group.getBounds().pad(0.1));
