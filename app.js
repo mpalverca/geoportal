@@ -1,6 +1,9 @@
 // Configuración Supabase
 const SUPABASE_URL = 'https://zpllugprxjqohnmxhizq.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwbGx1Z3ByeGpxb2hubXhoaXpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEzMjk0NTYsImV4cCI6MjA2NjkwNTQ1Nn0.wKZ1AgPUZMy178r75N2frJlJl6wbkrjCOk4m4MVqmEs';
+//supaase ornato view
+const SUPABASE_0_URL = 'https://strvklqwxyenoobrqtis.supabase.co';
+const SUPABASE_0_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN0cnZrbHF3eHllbm9vYnJxdGlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0NTU2MzQsImV4cCI6MjA2ODAzMTYzNH0.tBX7U1Bsq5de9man6iCDmq-AudmYr-NC86v62tz4IKg';
 
 // Variables globales
 let map;
@@ -40,7 +43,6 @@ const statusEvin = {
   'DEFAULT': '#007bff'
 };
 
-
 // Iconos por tipo de evento
 const EVENT_ICONS = {
   'Inundación': { icon: 'water', color: '#1e90ff' },
@@ -50,6 +52,12 @@ const EVENT_ICONS = {
   'Incendio': { icon: 'fire', color: '#ff4500' },
   'DEFAULT': { icon: 'exclamation-triangle', color: '#007bff' }
 };
+
+const cooper_icon={
+  '1': { icon: 'Home', color: '#1e90ff' },
+  '2': { icon: 'Terrain', color: '#8b4513' },
+  '3': { icon: 'road', color: '#ff4500' },
+}
 
 // Iconos por tipo de afectación
 const AFECTACION_ICONS = {
@@ -155,7 +163,7 @@ function getCustomIconEvin(item) {
   const desc = (item.desc || '')
 
   // Buscar icono para el evento
-  let iconInfo = { icon: 'heart', color: '#1e90ff' };
+  let iconInfo = { icon: 'alarm', color: '#1e90ff' };
 
   // Color según prioridad
   const color = statusEvin[clase] || iconInfo.color || statusEvin.DEFAULT;
@@ -572,15 +580,15 @@ function crearPopupContentCooper(item, lat, lng) {
 
   // Título
   const titulo = item.EVENTO || `clase ${item.class}` || 'Registro de Punto';
-  content += `<h4>${titulo} -${item.id} </h4>`;
+  content += `<h4>${item.id} - ${titulo}- </h4>`;
 
   // Mostrar campos principales
-  const camposPrincipales = ['FECHA', 'Class', 'tipe', 'desc'];
+  const camposPrincipales = ['fecha', , "title", 'tipe', 'desc'];
 
   camposPrincipales.forEach(campo => {
     if (item[campo]) {
       let valor = item[campo];
-      if (campo === 'FECHA') {
+      if (campo === 'fecha') {
         valor = new Date(valor).toLocaleDateString();
       }
       content += `<p><span class="label">${formatFieldName(campo)}:</span> ${valor}</p>`;
