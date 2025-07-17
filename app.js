@@ -25,6 +25,13 @@ const PRIORITY_COLORS = {
   'BAJA': '#28a745',
   'DEFAULT': '#007bff'
 };
+const color_prioridad = {
+  'Alta': '#dc3545',
+  'Media': '#ffc107',
+  'Baja': '#28a745',
+  'DEFAULT': '#007bff'
+};
+
 
 // Colores para marcadores según prioridad
 const DAMAGE_COOPER = {
@@ -157,7 +164,6 @@ function getCustomIconCooper(item) {
     iconAnchor: [10, 10]
   });
 }
-
 // Función para obtener el icono adecuado para puntos
 function getCustomIconEvin(item) {
   const tipe = (item.status || '')
@@ -194,15 +200,12 @@ function getCustomIconEvin(item) {
   });
 }
 function getCustomIconNotify(item) {
-  const tipe = (item.status || '')
-  const clase = (item.Estatus || '')
-  const desc = (item.desc || '')
-
   // Buscar icono para el evento
-  let iconInfo = { icon: 'text', color: '#1e90ff' };
+  let iconInfo = { icon: 'book', color: '#1e90ff' };
 
   // Color según prioridad
-  const color = statusEvin[clase] || iconInfo.color || statusEvin.DEFAULT;
+   // Color según prioridad
+  const color = color_prioridad[item.prioridad] || iconInfo.color || color_prioridad.DEFAULT;
 
   return L.divIcon({
     className: 'custom-marker',
@@ -563,11 +566,8 @@ function mostrarNotifyEnMapa() {
       // Formato GeoJSON
       lng = parseFloat(item.geom.coordinates[0]);
       lat = parseFloat(item.geom.coordinates[1]);
-    } else {
-      // Campos individuales
-      lat = parseFloat(item.LATITUD || item.lat || item.latitude);
-      lng = parseFloat(item.LONGITUD || item.lng || item.longitude);
-    }
+      
+    } 
     // Verificar que las coordenadas sean válidas para el área de Loja
     if (isNaN(lat) || isNaN(lng) || lat < -4.5 || lat > -3.5 || lng < -80.5 || lng > -78.5) {
       // Generar coordenadas aleatorias dentro del área de Loja
@@ -716,10 +716,10 @@ function crearPopupContentNotify(item, lat, lng) {
   };
   let content = `<div class="popup-content">`;
   // Título
-  const titulo = item.EVENTO || `Estado ${item.reporta}` || 'Registro de Punto';
+  const titulo = item.EVENTO || `Reporta ${item.reporta}` || 'Registro de Punto';
   content += `<h4>${titulo} -${item.id} </h4>`;
   // Mostrar campos principales
-  const camposPrincipales = ['boleta','date','Prioridad'];
+  const camposPrincipales = ['boleta','Fecha','prioridad'];
   camposPrincipales.forEach(campo => {
     if (item[campo]) {
       let valor = item[campo];

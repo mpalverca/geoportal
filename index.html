@@ -25,6 +25,15 @@
       background: #f5f7fa;
     }
 
+    .alert-simple {
+      padding: 15px;
+      background-color: #fff3cd;
+      border-left: 5px solid #ffc107;
+      border-radius: 4px;
+      color: #856404;
+      margin: 20px 0;
+    }
+
     /* Header */
     .header {
       background: linear-gradient(145deg, #2c3e50, #3498db);
@@ -269,16 +278,23 @@
     <h1>Geovisor de afectaciones Naturales y Antropicas del Cantón Loja</h1>
     <p>- Coordinación de Gestión de Riesgos-Ing Millan Paul Alverca Gaona</p>
     <div class="header-controls"></div>
-    <button class="btn btn-primary" onclick="toggleForm()">📝 Nuevo Reporte</button>
+   <!--  <button class="btn btn-primary" onclick="toggleForm()">📝 Nuevo Reporte</button>
+   -->
+   <button class="info-button" onclick="toggleInfoPanel()">acerca de i</button>
   </div>
   </div>
-
+  
   <div class="container">
     <div class="sidebar">
-      <div class="sidebar-header">
-        <h3>Panel de Control</h3>
+      <div class="sidebar-header">       
+        <h3>Panel de Control</h3>        
       </div>
       <div class="sidebar-content">
+         <div class="alert-simple">
+          ⚠️ <strong>Advertencia:</strong> La información presentada es de manera referencial y deberá asumirse con el
+          mayor cuidado ya que la divulgación inadecuada de la misma está sujeta a acciones y sanciones contempladas en
+          la LOGIRD.
+        </div>
         <div id="status" class="status loading">🔎 Conectando a la base de datos...</div>
 
         <div class="data-count">
@@ -317,9 +333,12 @@
           <h4>Información de las Tablas</h4>
           <p><strong>Afectaciones:</strong> Registros puntuales de gestión de riesgos</p>
           <p><strong>Área de influencia:</strong> Polígonos de áreas afectadas</p>
-          <p><strong>Puntos de Influencia:</strong> Información referente a grado de afectació nde una edificación, vialidad o Terreno mediante metodlogia Cooper</p>
-          <p><strong>EVIN:</strong> Muestra el levantamiento de información de lugares que han sido afectados por un evento adverso</p>
-          <p><strong>Notificaciones:</strong>Muestra las notificaciones realizadas por parte de la Comisaría de Ornato</p>
+          <p><strong>Puntos de Influencia:</strong> Información referente a grado de afectació nde una edificación,
+            vialidad o Terreno mediante metodlogia Cooper</p>
+          <p><strong>EVIN:</strong> Muestra el levantamiento de información de lugares que han sido afectados por un
+            evento adverso</p>
+          <p><strong>Notificaciones:</strong>Muestra las notificaciones realizadas por parte de la Comisaría de Ornato
+          </p>
         </div>
       </div>
     </div>
@@ -328,7 +347,7 @@
       <div id="map"></div>
       <div class="legend">
         <div class="legend-section">
-          <div class="legend-title">Afectaciones / Damage Cooper</div>
+          <div class="legend-title">Prioridad</div>
           <div class="legend-item">
             <div class="legend-icon" style="background-color: #dc3545; width: 16px; height: 16px; border-radius: 50%;">
             </div>
