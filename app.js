@@ -169,7 +169,7 @@ function getCustomIconEvin(item) {
 
   // Color según prioridad
   const color = statusEvin[clase] || iconInfo.color || statusEvin.DEFAULT;
-  console.log(item.status)
+
   return L.divIcon({
     className: 'custom-marker',
     html: `
@@ -193,7 +193,40 @@ function getCustomIconEvin(item) {
     iconAnchor: [10, 10]
   });
 }
+function getCustomIconNotify(item) {
+  const tipe = (item.status || '')
+  const clase = (item.Estatus || '')
+  const desc = (item.desc || '')
 
+  // Buscar icono para el evento
+  let iconInfo = { icon: 'text', color: '#1e90ff' };
+
+  // Color según prioridad
+  const color = statusEvin[clase] || iconInfo.color || statusEvin.DEFAULT;
+
+  return L.divIcon({
+    className: 'custom-marker',
+    html: `
+          <div style="
+            background-color: ${color};
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 0 5px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 10px;
+          ">
+            <i class="fas fa-${iconInfo.icon}"></i>
+          </div>
+        `,
+    iconSize: [20, 20],
+    iconAnchor: [10, 10]
+  });
+}
 // Toggle del formulario flotante
 function toggleForm() {
   const form = document.getElementById('floatingForm');
@@ -259,6 +292,13 @@ function setupLayerControls() {
       map.removeLayer(evinLayer);
     }
   });
+  showNotifyCheckbox.addEventListener('change', () => {
+    if (showNotifyCheckbox.checked) {
+      map.addLayer(notifyLayer);
+    } else {
+      map.removeLayer(notifyLayer);
+    }
+  });
 }
 
 async function cargarDatos() {
@@ -298,8 +338,8 @@ async function cargarDatos() {
         'Authorization': `Bearer ${SUPABASE_KEY}`
       }
     });
-    // Cargar datos de puntos (EVIN)
-    const notifyResponse = await fetch(`${SUPABASE_O_URL}/rest/v1/Notifys?select=*`, {
+    // Cargar datos de notificaciones (notificaciones)
+    const notifyResponse = await fetch(`${SUPABASE_O_URL}/rest/v1/notify?select=*`, {
       headers: {
         'apikey': SUPABASE_O_KEY,
         'Authorization': `Bearer ${SUPABASE_O_KEY}`
@@ -315,13 +355,12 @@ async function cargarDatos() {
     cooperData = await cooperResponse.json();
     evinData = await evinResponse.json();
     notifyData = await notifyResponse.json();
-    console.log(notifyData)
     // Mostrar datos en el mapa
     mostrarPuntosEnMapa();
     mostrarPoligonosEnMapa();
     mostrarCooperEnMapa();
     mostrarEvinEnMapa();
-    mostrarNotify();
+    mostrarNotifyEnMapa();
     // Actualizar contadores
     actualizarContadores();
 
@@ -512,7 +551,7 @@ function mostrarEvinEnMapa() {
   });
 }
 
-function mostrarNotify() {
+function mostrarNotifyEnMapa() {
   // Limpiar marcadores anteriores
   notifyLayer.clearLayers();
 
@@ -537,7 +576,7 @@ function mostrarNotify() {
     }
     // Crear marcador con icono personalizado
     const marker = L.marker([lat, lng], {
-      icon: getCustomIconEvin(item)
+      icon: getCustomIconNotify(item)
     });
     // Crear popup con información
     const popupContent = crearPopupContentNotify(item, lat, lng);
@@ -677,10 +716,10 @@ function crearPopupContentNotify(item, lat, lng) {
   };
   let content = `<div class="popup-content">`;
   // Título
-  const titulo = item.EVENTO || `Estado ${item.Estatus}` || 'Registro de Punto';
+  const titulo = item.EVENTO || `Estado ${item.reporta}` || 'Registro de Punto';
   content += `<h4>${titulo} -${item.id} </h4>`;
   // Mostrar campos principales
-  const camposPrincipales = ['Reporta', 'Boleta', 'Fecha', 'Prioridad'];
+  const camposPrincipales = ['boleta','date','Prioridad'];
   camposPrincipales.forEach(campo => {
     if (item[campo]) {
       let valor = item[campo];
@@ -693,7 +732,7 @@ function crearPopupContentNotify(item, lat, lng) {
   // Coordenadas
   content += `<p><span class="label">Coordenadas:</span><br>${formatCoords(lat)}, ${formatCoords(lng)}</p>`;
   // Descripción si existe
-  if (item.descripcion) {
+  if (item.desc) {
     /* const desc = item.descripcion.length > 100 ?
       item.descripcion.substring(0, 100) + '...' :
       item.descripcion; */
@@ -724,7 +763,7 @@ function actualizarContadores() {
   document.getElementById('polygonCount').textContent = polygonData.length;
   document.getElementById('cooperCount').textContent = cooperData.length;
   document.getElementById('evinCount').textContent = evinData.length;
-  document.getElementById('notifyCount').textContent = evinData.length;
+  document.getElementById('notifyCount').textContent = notifyData.length;
 }
 function ajustarVistaMapa() {
   const allLayers = [];
