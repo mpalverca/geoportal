@@ -204,7 +204,7 @@ function getCustomIconNotify(item) {
   let iconInfo = { icon: 'book', color: '#1e90ff' };
 
   // Color según prioridad
-   // Color según prioridad
+  // Color según prioridad
   const color = color_prioridad[item.prioridad] || iconInfo.color || color_prioridad.DEFAULT;
 
   return L.divIcon({
@@ -566,8 +566,8 @@ function mostrarNotifyEnMapa() {
       // Formato GeoJSON
       lng = parseFloat(item.geom.coordinates[0]);
       lat = parseFloat(item.geom.coordinates[1]);
-      
-    } 
+
+    }
     // Verificar que las coordenadas sean válidas para el área de Loja
     if (isNaN(lat) || isNaN(lng) || lat < -4.5 || lat > -3.5 || lng < -80.5 || lng > -78.5) {
       // Generar coordenadas aleatorias dentro del área de Loja
@@ -596,7 +596,9 @@ function crearPopupContentPuntos(item, lat, lng) {
   // Título
   const titulo = item.EVENTO || item.id || 'Registro de Punto';
   content += `<h4>${titulo} - ${item.id} </h4>`;
-
+  content += `<img src="${item.ANEX_FOT}"
+  style="max-width: 100%; max-height: 200px; height: auto; display: block; margin: 0 auto;"
+   alt=${item.descripcion}>`;
   // Mostrar campos principales
   const camposPrincipales = ['FECHA', 'ANIO', 'SECTOR_BASICO', 'AFECTACION', 'PRIORIDAD'];
   camposPrincipales.forEach(campo => {
@@ -605,6 +607,7 @@ function crearPopupContentPuntos(item, lat, lng) {
       if (campo === 'FECHA') {
         valor = new Date(valor).toLocaleDateString();
       }
+
       content += `<p><span class="label">${formatFieldName(campo)}:</span> ${valor}</p>`;
     }
   });
@@ -719,7 +722,7 @@ function crearPopupContentNotify(item, lat, lng) {
   const titulo = item.EVENTO || `Reporta ${item.reporta}` || 'Registro de Punto';
   content += `<h4>${titulo} -${item.id} </h4>`;
   // Mostrar campos principales
-  const camposPrincipales = ['boleta','Fecha','prioridad'];
+  const camposPrincipales = ['boleta', 'Fecha', 'prioridad'];
   camposPrincipales.forEach(campo => {
     if (item[campo]) {
       let valor = item[campo];
@@ -773,7 +776,7 @@ function ajustarVistaMapa() {
   cooperLayer.eachLayer(layer => allLayers.push(layer));
   evinLayer.eachLayer(layer => allLayers.push(layer));
   notifyLayer.eachLayer(layer => allLayers.push(layer));
-  
+
   if (allLayers.length > 0) {
     const group = new L.featureGroup(allLayers);
     map.fitBounds(group.getBounds().pad(0.1));
