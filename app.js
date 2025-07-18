@@ -623,10 +623,76 @@ function crearPopupContentPuntos(item, lat, lng) {
   content += `<p><span class="label">Detalle:</span><br>${item.informe_tecnico}</p>`; */
   // Coordenadas
   content += `<p><span class="label">Coordenadas:</span><br>${formatCoords(lat)}, ${formatCoords(lng)}</p>`;
-
+// --- BOTÓN DE DESCARGA ---
+  content += `
+  <button onclick="generarPDF('${escapeHtml(titulo)}', ${lat}, ${lng}, '${escapeHtml(JSON.stringify(item))}')" 
+          style="background: #4CAF50; color: white; border: none; padding: 8px 16px; cursor: pointer; margin-top: 10px;">
+    Descargar Reporte (PDF)
+  </button>
+`;
   content += `</div>`;
   return content;
 }
+
+// Función generarPDF actualizada:
+function generarPDF(titulo, lat, lng, itemStr) {
+  try {
+    const item = JSON.parse(decodeURIComponent(itemStr));
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    // Datos del item (simplificado)
+  doc.setFontSize(12);
+  doc.setFont("helvetica", "normal");
+  let yPosition = 35;
+    // Configuración del documento
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(16);
+    doc.text(`Reporte: ${titulo}`, 105, 20, { align: 'center' });
+    // Agregar imagen (si existe)
+  if (item.ANEX_FOT) {
+    // Aquí necesitarías convertir la imagen a base64 o usar html2canvas
+    // Ejemplo simplificado:
+    doc.addImage(item.ANEX_FOT, 'JPEG', 15, yPosition, 180, 100);
+    yPosition += 110;
+  }
+
+    // Coordenadas
+  doc.text(`Coordenadas: ${lat.toFixed(6)}, ${lng.toFixed(6)}`, 20, yPosition);
+  yPosition += 10;
+  // Campos principales
+  const camposPrincipales = ['FECHA', 'sector_barrio', 'afectación', 'PRIORIDAD', 'descripcion'];
+  camposPrincipales.forEach(campo => {
+    if (item[campo]) {
+      let valor = item[campo];
+      if (campo === 'FECHA') valor = new Date(valor).toLocaleDateString();
+      doc.text(`${campo}: ${valor}`, 20, yPosition);
+      yPosition += 10;
+    }
+  });
+// Coordenadas
+  doc.text(`Acciones a desarrolar: ${item.accions}`, 20, yPosition);
+
+    // Resto del código para generar el PDF...
+    doc.save(`reporte_${titulo.replace(/[^a-z0-9]/gi, '_')}.pdf`);
+  } catch (e) {
+    console.error("Error al generar PDF:", e);
+    alert("Ocurrió un error al generar el reporte");
+  }
+}
+
+// Función para escapar HTML (seguridad)
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.toString()
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+
 function crearPopupContentPoligonos(item) {
   let content = `<div class="popup-content">`;
 
