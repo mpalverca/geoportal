@@ -204,7 +204,7 @@ function getCustomIconNotify(item) {
   let iconInfo = { icon: 'book', color: '#1e90ff' };
 
   // Color según prioridad
-   // Color según prioridad
+  // Color según prioridad
   const color = color_prioridad[item.prioridad] || iconInfo.color || color_prioridad.DEFAULT;
 
   return L.divIcon({
@@ -566,8 +566,8 @@ function mostrarNotifyEnMapa() {
       // Formato GeoJSON
       lng = parseFloat(item.geom.coordinates[0]);
       lat = parseFloat(item.geom.coordinates[1]);
-      
-    } 
+
+    }
     // Verificar que las coordenadas sean válidas para el área de Loja
     if (isNaN(lat) || isNaN(lng) || lat < -4.5 || lat > -3.5 || lng < -80.5 || lng > -78.5) {
       // Generar coordenadas aleatorias dentro del área de Loja
@@ -596,7 +596,9 @@ function crearPopupContentPuntos(item, lat, lng) {
   // Título
   const titulo = item.EVENTO || item.id || 'Registro de Punto';
   content += `<h4>${titulo} - ${item.id} </h4>`;
-
+  content += `<img src="${item.ANEX_FOT}"
+  style="max-width: 100%; max-height: 200px; height: auto; display: block; margin: 0 auto;"
+   alt=${item.descripcion}>`;
   // Mostrar campos principales
   const camposPrincipales = ['FECHA', 'ANIO', 'SECTOR_BASICO', 'AFECTACION', 'PRIORIDAD'];
   camposPrincipales.forEach(campo => {
@@ -605,6 +607,7 @@ function crearPopupContentPuntos(item, lat, lng) {
       if (campo === 'FECHA') {
         valor = new Date(valor).toLocaleDateString();
       }
+
       content += `<p><span class="label">${formatFieldName(campo)}:</span> ${valor}</p>`;
     }
   });
@@ -620,10 +623,76 @@ function crearPopupContentPuntos(item, lat, lng) {
   content += `<p><span class="label">Detalle:</span><br>${item.informe_tecnico}</p>`; */
   // Coordenadas
   content += `<p><span class="label">Coordenadas:</span><br>${formatCoords(lat)}, ${formatCoords(lng)}</p>`;
-
+// --- BOTÓN DE DESCARGA ---
+  content += `
+  <button onclick="generarPDF('${escapeHtml(titulo)}', ${lat}, ${lng}, '${escapeHtml(JSON.stringify(item))}')" 
+          style="background: #4CAF50; color: white; border: none; padding: 8px 16px; cursor: pointer; margin-top: 10px;">
+    Descargar Reporte (PDF)
+  </button>
+`;
   content += `</div>`;
   return content;
 }
+
+// Función generarPDF actualizada:
+function generarPDF(titulo, lat, lng, itemStr) {
+  try {
+    const item = JSON.parse(decodeURIComponent(itemStr));
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    // Datos del item (simplificado)
+  doc.setFontSize(12);
+  doc.setFont("helvetica", "normal");
+  let yPosition = 35;
+    // Configuración del documento
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(16);
+    doc.text(`Reporte: ${titulo}`, 105, 20, { align: 'center' });
+    // Agregar imagen (si existe)
+  if (item.ANEX_FOT) {
+    // Aquí necesitarías convertir la imagen a base64 o usar html2canvas
+    // Ejemplo simplificado:
+    doc.addImage(item.ANEX_FOT, 'JPEG', 15, yPosition, 180, 100);
+    yPosition += 110;
+  }
+
+    // Coordenadas
+  doc.text(`Coordenadas: ${lat.toFixed(6)}, ${lng.toFixed(6)}`, 20, yPosition);
+  yPosition += 10;
+  // Campos principales
+  const camposPrincipales = ['FECHA', 'sector_barrio', 'afectación', 'PRIORIDAD', 'descripcion'];
+  camposPrincipales.forEach(campo => {
+    if (item[campo]) {
+      let valor = item[campo];
+      if (campo === 'FECHA') valor = new Date(valor).toLocaleDateString();
+      doc.text(`${campo}: ${valor}`, 20, yPosition);
+      yPosition += 10;
+    }
+  });
+// Coordenadas
+  doc.text(`Acciones a desarrolar: ${item.accions}`, 20, yPosition);
+
+    // Resto del código para generar el PDF...
+    doc.save(`reporte_${titulo.replace(/[^a-z0-9]/gi, '_')}.pdf`);
+  } catch (e) {
+    console.error("Error al generar PDF:", e);
+    alert("Ocurrió un error al generar el reporte");
+  }
+}
+
+// Función para escapar HTML (seguridad)
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.toString()
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+
 function crearPopupContentPoligonos(item) {
   let content = `<div class="popup-content">`;
 
@@ -718,7 +787,7 @@ function crearPopupContentNotify(item, lat, lng) {
   const titulo = item.EVENTO || `Reporta ${item.reporta}` || 'Registro de Punto';
   content += `<h4>${titulo} -${item.id} </h4>`;
   // Mostrar campos principales
-  const camposPrincipales = ['boleta','Fecha','prioridad'];
+  const camposPrincipales = ['boleta', 'Fecha', 'prioridad'];
   camposPrincipales.forEach(campo => {
     if (item[campo]) {
       let valor = item[campo];
@@ -772,7 +841,7 @@ function ajustarVistaMapa() {
   cooperLayer.eachLayer(layer => allLayers.push(layer));
   evinLayer.eachLayer(layer => allLayers.push(layer));
   notifyLayer.eachLayer(layer => allLayers.push(layer));
-  
+
   if (allLayers.length > 0) {
     const group = new L.featureGroup(allLayers);
     map.fitBounds(group.getBounds().pad(0.1));
