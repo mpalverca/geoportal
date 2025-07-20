@@ -438,8 +438,8 @@ function mostrarPoligonosEnMapa() {
           poly[0].map(coord => [coord[1], coord[0]])
         );
         polygon = L.polygon(leafletCoords, {
-          color: '#ff0000',
-          fillColor: '#ff0000',
+          color: item.tipo === 1 ? '#ffff00' : '#0000ff',
+          fillColor: item.tipo === 1 ? '#ffff00' : '#0000ff',
           fillOpacity: 0.3,
           weight: 2
         });
@@ -628,11 +628,11 @@ function crearPopupContentPoligonos(item) {
   let content = `<div class="popup-content">`;
 
   // Título
-  const titulo = item.tipo || item.desc || item.id || 'Polígono de Afectación';
+  const titulo = item.tipo===1?'Susceptible a movimiento en masas':'Area Inundable';
   content += `<h4>${titulo}</h4>`;
 
   // Mostrar campos disponibles
-  const campos = ['id', 'tipo', 'desc', 'fid'];
+  const campos = ['Descripcio',];
 
   campos.forEach(campo => {
     if (item[campo]) {
@@ -643,8 +643,7 @@ function crearPopupContentPoligonos(item) {
   });
 
   // Información adicional
-  content += `<p><span class="label">Tipo:</span> Polígono de área afectada</p>`;
-
+  
   content += `</div>`;
   return content;
 }
