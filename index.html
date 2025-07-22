@@ -3,15 +3,12 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>Geovisor de afectaciones de Cantón Loja</title>
+  <title>Geovisor de Apoyo a la Gestión de Riesgos de Desastres en el Cantón Loja</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
-
-  <!-- Font Awesome para iconos -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
     * {
@@ -248,6 +245,102 @@
       color: #2c3e50;
     }
 
+    /* Estilos para los filtros */
+    .filter-controls {
+      background: #f8f9fa;
+      padding: 1rem;
+      border-radius: 4px;
+      margin-bottom: 1rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .filter-controls h4 {
+      margin: 0 0 0.75rem 0;
+      color: #2c3e50;
+      font-size: 1rem;
+      border-bottom: 1px solid #e0e0e0;
+      padding-bottom: 0.5rem;
+    }
+
+    .filter-group {
+      margin-bottom: 1rem;
+    }
+
+    .filter-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-size: 0.85rem;
+      color: #495057;
+      font-weight: 500;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      background-color: #fff;
+      transition: border-color 0.3s;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: #3498db;
+      box-shadow: 0 0 0 2px rgba(52,152,219,0.2);
+    }
+
+    .date-range {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .date-range span {
+      font-size: 0.9rem;
+      color: #6c757d;
+      padding: 0 0.25rem;
+    }
+
+    .btn-filter {
+      width: 100%;
+      padding: 0.6rem;
+      margin-top: 0.5rem;
+      background: #3498db;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: all 0.3s;
+      text-align: center;
+    }
+
+    .btn-filter:hover {
+      background: #2980b9;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .btn-reset {
+      background: #6c757d;
+    }
+
+    .btn-reset:hover {
+      background: #5a6268;
+    }
+
+    /* Estilos para select */
+    select.form-control {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23333' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.75rem center;
+      background-size: 12px;
+      padding-right: 2rem;
+    }
+
     @media (max-width: 768px) {
       .container {
         flex-direction: column;
@@ -269,19 +362,24 @@
         right: 10px;
         font-size: 0.8rem;
       }
+      
+      .filter-controls {
+        padding: 0.75rem;
+      }
+      
+      .filter-group {
+        margin-bottom: 0.75rem;
+      }
     }
   </style>
 </head>
 
 <body>
   <div class="header">
-    <h1>Geovisor de afectaciones Naturales y Antropicas del Cantón Loja</h1>
+    <h1>Geovisor de Apoyo a la Gestión de Riesgos de Desastres en el Cantón Loja</h1>
     <p>- Coordinación de Gestión de Riesgos-Ing Millan Paul Alverca Gaona</p>
     <div class="header-controls"></div>
-   <!--  <button class="btn btn-primary" onclick="toggleForm()">📝 Nuevo Reporte</button>
-   -->
-   <button class="info-button" onclick="toggleInfoPanel()">acerca de i</button>
-  </div>
+    <button class="info-button" onclick="toggleInfoPanel()">acerca de i</button>
   </div>
   
   <div class="container">
@@ -295,6 +393,46 @@
           mayor cuidado y responsabilidad ya que la divulgación inadecuada de la misma está sujeta a acciones y sanciones contempladas en
           la LOGIRD.
         </div>
+        
+        <!-- Filtros -->
+        <div class="filter-controls">
+          <h4>Filtros</h4>
+          
+          <!-- Filtro por Prioridad -->
+          <div class="filter-group">
+            <label for="priorityFilter">Prioridad:</label>
+            <select id="priorityFilter" class="form-control">
+              <option value="TODAS">Todas</option>
+              <option value="ALTA">Alta</option>
+              <option value="MEDIA">Media</option>
+              <option value="BAJA">Baja</option>
+            </select>
+          </div>
+          
+          <!-- Filtro por Estado -->
+          <div class="filter-group">
+            <label for="statusFilter">Estado:</label>
+            <select id="statusFilter" class="form-control">
+              <option value="TODOS">Todos</option>
+              <option value="ATENDIDO">Atendido</option>
+              <option value="PENDIENTE">Pendiente</option>
+            </select>
+          </div>
+          
+          <!-- Filtro por Rango de Fechas -->
+          <div class="filter-group">
+            <label>Rango de fechas:</label>
+            <div class="date-range">
+              <input type="date" id="startDate" class="form-control" placeholder="Fecha inicio">
+              <span>a</span>
+              <input type="date" id="endDate" class="form-control" placeholder="Fecha fin">
+            </div>
+          </div>
+          
+          <button id="applyFilters" class="btn-filter">Aplicar Filtros</button>
+          <button id="resetFilters" class="btn-filter btn-reset">Restablecer</button>
+        </div>
+
         <div id="status" class="status loading">🔎 Conectando a la base de datos...</div>
 
         <div class="data-count">
@@ -333,7 +471,7 @@
           <h4>Información de las Tablas</h4>
           <p><strong>Afectaciones:</strong> Registros puntuales de gestión de riesgos</p>
           <p><strong>Área de influencia:</strong> Polígonos de áreas afectadas</p>
-          <p><strong>Puntos de Influencia:</strong> Información referente a grado de afectación de una edificación,
+          <p><strong>Puntos de Influencia:</strong> Información referente a grado de afectació nde una edificación,
             vialidad o Terreno mediante metodlogia Cooper</p>
           <p><strong>EVIN:</strong> Muestra el levantamiento de información de lugares que han sido afectados por un
             evento adverso</p>
@@ -381,11 +519,12 @@
       </div>
     </div>
   </div>
+  
   <!-- Leaflet JS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
   <!--PDF-->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="app.js"></script>
 </body>
 

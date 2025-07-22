@@ -6,18 +6,16 @@ const SUPABASE_O_URL = 'https://strvklqwxyenoobrqtis.supabase.co';
 const SUPABASE_O_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN0cnZrbHF3eHllbm9vYnJxdGlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0NTU2MzQsImV4cCI6MjA2ODAzMTYzNH0.tBX7U1Bsq5de9man6iCDmq-AudmYr-NC86v62tz4IKg';
 
 // Variables globales
-let map;
-let pointData = [];
-let polygonData = [];
-let cooperData = [];
-let evinData = [];
-let notifyData = [];
-let markersLayer;
-let polygonsLayer;
-let cooperLayer;
-let evinLayer;
-let notifyLayer;
+let map, pointData = [], polygonData = [], cooperData = [], evinData = [], notifyData = [];
+let markersLayer, polygonsLayer, cooperLayer, evinLayer, notifyLayer;
 
+// Variables globales para los filtros
+let currentFilters = {
+  priority: 'TODAS',
+  status: 'TODOS',
+  startDate: null,
+  endDate: null
+};
 // Colores para marcadores según prioridad
 const PRIORITY_COLORS = {
   'ALTA': '#dc3545',
@@ -77,6 +75,7 @@ const AFECTACION_ICONS = {
   'Equipamiento': { icon: 'building', color: '#4682b4' },
   'DEFAULT': { icon: 'location-dot', color: '#007bff' }
 };
+/* to panel */
 
 // Función para obtener el icono adecuado para puntos
 function getCustomIcon(item) {
