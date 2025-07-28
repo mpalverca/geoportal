@@ -6,16 +6,18 @@ const SUPABASE_O_URL = 'https://strvklqwxyenoobrqtis.supabase.co';
 const SUPABASE_O_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN0cnZrbHF3eHllbm9vYnJxdGlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0NTU2MzQsImV4cCI6MjA2ODAzMTYzNH0.tBX7U1Bsq5de9man6iCDmq-AudmYr-NC86v62tz4IKg';
 
 // Variables globales
-let map, pointData = [], polygonData = [], cooperData = [], evinData = [], notifyData = [];
-let markersLayer, polygonsLayer, cooperLayer, evinLayer, notifyLayer;
+let map;
+let pointData = [];
+let polygonData = [];
+let cooperData = [];
+let evinData = [];
+let notifyData = [];
+let markersLayer;
+let polygonsLayer;
+let cooperLayer;
+let evinLayer;
+let notifyLayer;
 
-// Variables globales para los filtros
-let currentFilters = {
-  priority: 'TODAS',
-  status: 'TODOS',
-  startDate: null,
-  endDate: null
-};
 // Colores para marcadores según prioridad
 const PRIORITY_COLORS = {
   'ALTA': '#dc3545',
@@ -75,7 +77,6 @@ const AFECTACION_ICONS = {
   'Equipamiento': { icon: 'building', color: '#4682b4' },
   'DEFAULT': { icon: 'location-dot', color: '#007bff' }
 };
-/* to panel */
 
 // Función para obtener el icono adecuado para puntos
 function getCustomIcon(item) {
@@ -612,17 +613,17 @@ function crearPopupContentPuntos(item, lat, lng) {
   });
   // Descripción si existe
   if (item.descripcion) {
-    /* const desc = item.descripcion.length > 100 ?
+    const desc = item.descripcion.length > 100 ?
       item.descripcion.substring(0, 100) + '...' :
-      item.descripcion; */
-    content += `<p><span class="label">Descripción:</span> ${item.descripcion}</p>`;
+      item.descripcion;
+    content += `<p><span class="label">Descripción:</span> ${desc}</p>`;
   }
   /* content += `<p><span class="label">Atención:</span><br>${item.depen}</p>`;
   content += `<p><span class="label">Posibles acciones a realizar:</span><br>${item.accions}</p>`;
   content += `<p><span class="label">Detalle:</span><br>${item.informe_tecnico}</p>`; */
   // Coordenadas
   content += `<p><span class="label">Coordenadas:</span><br>${formatCoords(lat)}, ${formatCoords(lng)}</p>`;
-// --- BOTÓN DE DESCARGA ---
+  // --- BOTÓN DE DESCARGA ---
   content += `
   <button onclick="generarPDF('${escapeHtml(titulo)}', ${lat}, ${lng}, '${escapeHtml(JSON.stringify(item))}')" 
           style="background: #4CAF50; color: white; border: none; padding: 8px 16px; cursor: pointer; margin-top: 10px;">
@@ -639,41 +640,110 @@ function generarPDF(titulo, lat, lng, itemStr) {
     const item = JSON.parse(decodeURIComponent(itemStr));
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
-    
-    // Datos del item (simplificado)
-  doc.setFontSize(12);
-  doc.setFont("helvetica", "normal");
-  let yPosition = 35;
-    // Configuración del documento
+
+    // Configuración de márgenes
+    const leftMargin = 15;
+    const rightMargin = 15;
+    const topMargin = 20;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const maxWidth = pageWidth - leftMargin - rightMargin;
+
+    // Fecha actual de descarga
+    const fechaDescarga = new Date().toLocaleDateString('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    // Configuración inicial del documento
     doc.setFont("helvetica", "bold");
     doc.setFontSize(16);
-    doc.text(`Reporte: ${titulo}`, 105, 20, { align: 'center' });
+    doc.text(`Reporte: ${titulo}`, pageWidth / 2, topMargin, { align: 'center' });
+
+    // Fecha de descarga (más pequeña y en esquina superior derecha)
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Generado: ${fechaDescarga}`, pageWidth - rightMargin, topMargin, { align: 'right' });
+
+    let yPosition = topMargin + 20;
+
+    // Línea divisoria
+    doc.setDrawColor(200, 200, 200);
+    doc.line(leftMargin, yPosition, pageWidth - rightMargin, yPosition);
+    yPosition += 10;
+
     // Agregar imagen (si existe)
-  if (item.ANEX_FOT) {
-    // Aquí necesitarías convertir la imagen a base64 o usar html2canvas
-    // Ejemplo simplificado:
-    doc.addImage(item.ANEX_FOT, 'JPEG', 15, yPosition, 180, 100);
-    yPosition += 110;
-  }
+    if (item.ANEX_FOT) {
+      // Ajustar tamaño de la imagen para que quepa en el ancho con márgenes
+      const imgWidth = pageWidth - leftMargin - rightMargin;
+      const imgHeight = 100; // Altura fija o podrías calcular proporción
+
+      doc.addImage(item.ANEX_FOT, 'JPEG', leftMargin, yPosition, imgWidth, imgHeight);
+      yPosition += imgHeight + 10;
+
+      // Otra línea divisoria después de la imagen
+      doc.line(leftMargin, yPosition - 5, pageWidth - rightMargin, yPosition - 5);
+      yPosition += 5;
+    }
 
     // Coordenadas
-  doc.text(`Coordenadas: ${lat.toFixed(6)}, ${lng.toFixed(6)}`, 20, yPosition);
-  yPosition += 10;
-  // Campos principales
-  const camposPrincipales = ['FECHA', 'sector_barrio', 'afectación', 'PRIORIDAD', 'descripcion'];
-  camposPrincipales.forEach(campo => {
-    if (item[campo]) {
-      let valor = item[campo];
-      if (campo === 'FECHA') valor = new Date(valor).toLocaleDateString();
-      doc.text(`${campo}: ${valor}`, 20, yPosition);
-      yPosition += 10;
-    }
-  });
-// Coordenadas
-  doc.text(`Acciones a desarrolar: ${item.accions}`, 20, yPosition);
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text("Ubicación:", leftMargin, yPosition);
+    doc.setFont("helvetica", "normal");
+    doc.text(`${lat.toFixed(6)}, ${lng.toFixed(6)}`, leftMargin + 30, yPosition);
+    yPosition += 10;
 
-    // Resto del código para generar el PDF...
-    doc.save(`reporte_${titulo.replace(/[^a-z0-9]/gi, '_')}.pdf`);
+    // Campos principales
+    const camposPrincipales = ['FECHA', 'sector_barrio', 'afectación', 'PRIORIDAD', 'descripcion'];
+    camposPrincipales.forEach(campo => {
+      if (item[campo]) {
+        let valor = item[campo];
+        if (campo === 'FECHA') {
+          valor = new Date(valor).toLocaleDateString('es-ES', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+          });
+        }
+
+        doc.setFont("helvetica", "bold");
+        doc.text(`${campo}:`, leftMargin, yPosition);
+        doc.setFont("helvetica", "normal");
+
+        // Dividir texto largo en múltiples líneas
+        const lines = doc.splitTextToSize(String(valor), maxWidth - 40);
+        doc.text(lines, leftMargin + 30, yPosition);
+        yPosition += Math.max(10, lines.length * 7);
+      }
+    });
+    doc.setFont("helvetica", "bold");
+    doc.text("atiende:", leftMargin, yPosition);
+    doc.setFont("helvetica", "normal");
+    doc.text(item.depen, leftMargin + 30, yPosition);
+    yPosition += 7;
+
+    // Acciones a desarrollar con manejo de texto largo
+    if (item.accions) {
+      doc.setFont("helvetica", "bold");
+      doc.text("Acciones a desarrollar:", leftMargin, yPosition);
+      yPosition += 7;
+
+      doc.setFont("helvetica", "normal");
+      const accionesLines = doc.splitTextToSize(item.accions, maxWidth);
+      doc.text(accionesLines, leftMargin, yPosition);
+      yPosition += accionesLines.length * 7 + 10;
+    }
+
+    // Pie de página
+    doc.setFontSize(10);
+    doc.setTextColor(150, 150, 150);
+    doc.text("Reporte generado automáticamente", pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: 'center' });
+
+    // Guardar el PDF
+    doc.save(`reporte_${titulo.replace(/[^a-z0-9]/gi, '_')}_${fechaDescarga.replace(/[/,: ]/g, '-')}.pdf`);
   } catch (e) {
     console.error("Error al generar PDF:", e);
     alert("Ocurrió un error al generar el reporte");
@@ -696,7 +766,7 @@ function crearPopupContentPoligonos(item) {
   let content = `<div class="popup-content">`;
 
   // Título
-  const titulo = item.tipo===1?'Susceptible a movimiento en masas':'Area Inundable';
+  const titulo = item.tipo === 1 ? 'Susceptible a movimiento en masas' : 'Area Inundable';
   content += `<h4>${titulo}</h4>`;
 
   // Mostrar campos disponibles
@@ -711,7 +781,7 @@ function crearPopupContentPoligonos(item) {
   });
 
   // Información adicional
-  
+
   content += `</div>`;
   return content;
 }
