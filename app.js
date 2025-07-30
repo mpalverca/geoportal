@@ -379,8 +379,17 @@ async function cargarDatos() {
     status.className = 'status error';
   }
 }
-//crear punto
+//funcipon colapse leyend
+function toggleLegend() {
+    const content = document.getElementById('legendContent');
+    if (content.style.display === 'none') {
+      content.style.display = 'block';
+    } else {
+      content.style.display = 'none';
+    }
+  }
 
+//crear punto
 function createLocationCircle(lat, lng, radius, color = '#ff0000', fillOpacity = 0.2) {
   // Círculo geográfico
   const circle = L.circle([lat, lng], {
@@ -945,6 +954,14 @@ function actualizarContadores() {
   document.getElementById('evinCount').textContent = evinData.length;
   document.getElementById('notifyCount').textContent = notifyData.length;
 }
+
+document.getElementById('toggleSidebar').addEventListener('click', function () {
+  const sidebar = document.querySelector('.sidebar');
+  sidebar.classList.toggle('collapsed');
+
+  // Cambia la flecha del botón
+  this.textContent = sidebar.classList.contains('collapsed') ? '⮞' : '⮜';
+});
 function ajustarVistaMapa() {
   const allLayers = [];
   // Agregar todas las capas para calcular bounds
