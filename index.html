@@ -23,12 +23,12 @@
     }
 
     .alert-simple {
-      padding: 15px;
+      padding: 10px;
       background-color: #fff3cd;
       border-left: 5px solid #ffc107;
       border-radius: 4px;
       color: #856404;
-      margin: 20px 0;
+      margin: 2px 0;
     }
 
     /* Header */
@@ -74,7 +74,7 @@
     .sidebar-header {
       background: #2c3e50;
       color: white;
-      padding: 1rem;
+      padding-left: 20px;
     }
 
     .sidebar-content {
@@ -409,7 +409,6 @@
 <body>
   <div class="header">
     <h1>Geovisor de Apoyo a la Gestión de Riesgos de Desastres en el Cantón Loja</h1>
-    <p>- Coordinación de Gestión de Riesgos-Ing Millan Paul Alverca Gaona</p>
     <div class="header-controls"></div>
     <button class="info-button" onclick="toggleInfoPanel()">acerca de i</button>
   </div>
@@ -426,6 +425,26 @@
           sanciones contempladas en
           la LOGIRD.
         </div>
+        <div id="status" class="status loading">🔎 Conectando a la base de datos...</div>
+
+        <div class="data-count">
+          <div>Afectaciones : <span id="pointCount">0</span></div>
+          <div>Área de influencia : <span id="polygonCount">0</span></div>
+          <div>Damage Cooper: <span id="cooperCount">0</span></div>
+          <div>Evin: <span id="evinCount">0</span></div>
+          <div>notificaciones: <span id="notifyCount">0</span></div>
+        </div>
+        <div class="table-info">
+          <h4>Información de las Tablas</h4>
+          <p><strong>Afectaciones:</strong> Registros puntuales de gestión de riesgos</p>
+          <p><strong>Área de influencia:</strong> Polígonos de áreas afectadas</p>
+          <p><strong>Puntos de Influencia:</strong> Información referente a grado de afectació nde una edificación,
+            vialidad o Terreno mediante metodlogia Cooper</p>
+          <p><strong>EVIN:</strong> Muestra el levantamiento de información de lugares que han sido afectados por un
+            evento adverso</p>
+          <p><strong>Notificaciones:</strong>Muestra las notificaciones realizadas por parte de la Comisaría de Ornato
+          </p>
+        </div>
 
         <!-- Filtros -->
         <div class="filter-controls">
@@ -441,7 +460,6 @@
               <option value="BAJA">Baja</option>
             </select>
           </div>
-
           <!-- Filtro por Estado -->
           <div class="filter-group">
             <label for="statusFilter">Estado:</label>
@@ -451,73 +469,18 @@
               <option value="PENDIENTE">Pendiente</option>
             </select>
           </div>
-
-          <!-- Filtro por Rango de Fechas -->
-          <div class="filter-group">
-            <label>Rango de fechas:</label>
-            <div class="date-range">
-              <input type="date" id="startDate" class="form-control" placeholder="Fecha inicio">
-              <span>a</span>
-              <input type="date" id="endDate" class="form-control" placeholder="Fecha fin">
-            </div>
-          </div>
-
           <button id="applyFilters" class="btn-filter">Aplicar Filtros</button>
           <button id="resetFilters" class="btn-filter btn-reset">Restablecer</button>
-        </div>
-
-        <div id="status" class="status loading">🔎 Conectando a la base de datos...</div>
-
-        <div class="data-count">
-          <div>Afectaciones : <span id="pointCount">0</span></div>
-          <div>Área de influencia : <span id="polygonCount">0</span></div>
-          <div>Damage Cooper: <span id="cooperCount">0</span></div>
-          <div>Evin: <span id="evinCount">0</span></div>
-          <div>notificaciones: <span id="notifyCount">0</span></div>
-        </div>
-
-        <div class="layer-controls">
-          <h4>Capas Visibles</h4>
-          <div class="layer-toggle">
-            <input type="checkbox" id="showPoints" checked>
-            <label for="showPoints">Mostrar afectaciones </label>
-          </div>
-          <div class="layer-toggle">
-            <input type="checkbox" id="showPolygons" checked>
-            <label for="showPolygons">Mostrar áreas de influencia</label>
-          </div>
-          <div class="layer-toggle">
-            <input type="checkbox" id="showCooper" checked>
-            <label for="showCooper">Mostrar Clasificación de Daño (Cooper)</label>
-          </div>
-          <div class="layer-toggle">
-            <input type="checkbox" id="showEvin" checked>
-            <label for="showEvin">Mostrar Evin</label>
-          </div>
-          <div class="layer-toggle">
-            <input type="checkbox" id="showNotify" checked>
-            <label for="showNotify">Mostrar Notificaciones</label>
-          </div>
-        </div>
-
-        <div class="table-info">
-          <h4>Información de las Tablas</h4>
-          <p><strong>Afectaciones:</strong> Registros puntuales de gestión de riesgos</p>
-          <p><strong>Área de influencia:</strong> Polígonos de áreas afectadas</p>
-          <p><strong>Puntos de Influencia:</strong> Información referente a grado de afectació nde una edificación,
-            vialidad o Terreno mediante metodlogia Cooper</p>
-          <p><strong>EVIN:</strong> Muestra el levantamiento de información de lugares que han sido afectados por un
-            evento adverso</p>
-          <p><strong>Notificaciones:</strong>Muestra las notificaciones realizadas por parte de la Comisaría de Ornato
-          </p>
         </div>
       </div>
     </div>
 
     <div class="map-container">
       <div id="map"></div>
+      
       <div class="legend" id="legend">
         <button class="legend-toggle" onclick="toggleLegend()">☰ Leyenda</button>
+
         <div class="legend-content" id="legendContent">
           <div class="legend-section">
             <div class="legend-title">Prioridad</div>
@@ -554,14 +517,12 @@
       </div>
     </div>
   </div>
-  <footer>
-            © 2025 Municipio de Loja - Coordinación de gestión de riesgos | Ing Millan paul Alverca Gaona | Ecuador-
-            Loja |
-            <a href="https://www.loja.gob.ec/"
-                style="color: var(--color-secondary); text-decoration: none;">Visita nuestro sitio web</a>
-        </footer>
-  </div>
 
+  </div>
+  <footer>
+    © 2025 Municipio de Loja - Coordinación de gestión de riesgos | Ing Millan Paul Alverca Gaona | Ecuador-Loja |
+    <a href="https://www.loja.gob.ec/" style="color: #3498db; text-decoration: none;">Visita nuestro sitio web</a>
+  </footer>
   <!-- Leaflet JS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
   <!--PDF--><!-- Leaflet JS -->
