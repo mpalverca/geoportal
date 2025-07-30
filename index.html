@@ -203,22 +203,6 @@
       max-width: 200px;
     }
 
-    .legend-toggle {
-      background: #007bff;
-      color: white;
-      border: none;
-      padding: 6px 10px;
-      border-radius: 4px;
-      cursor: pointer;
-      width: 100%;
-      margin-bottom: 8px;
-    }
-
-    .legend-content {
-      display: block;
-      transition: max-height 0.3s ease;
-    }
-
     .legend h4 {
       margin: 0 0 10px 0;
       font-size: 0.9rem;
@@ -267,7 +251,7 @@
       padding: 1rem;
       border-radius: 4px;
       margin-bottom: 1rem;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
 
     .filter-controls h4 {
@@ -303,7 +287,7 @@
     .form-control:focus {
       outline: none;
       border-color: #3498db;
-      box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+      box-shadow: 0 0 0 2px rgba(52,152,219,0.2);
     }
 
     .date-range {
@@ -336,7 +320,7 @@
     .btn-filter:hover {
       background: #2980b9;
       transform: translateY(-1px);
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
 
     .btn-reset {
@@ -378,29 +362,13 @@
         right: 10px;
         font-size: 0.8rem;
       }
-
+      
       .filter-controls {
         padding: 0.75rem;
       }
-
+      
       .filter-group {
         margin-bottom: 0.75rem;
-      }
-    }
-
-    /* Estilos para el efecto de pulso */
-    .pulse-circle {
-      border-radius: 50%;
-      background: rgba(255, 0, 0, 0.6);
-      transform: scale(0);
-      animation: pulse 0.75s infinite;
-      position: absolute;
-    }
-
-    @keyframes pulse {
-      to {
-        transform: scale(2);
-        opacity: 0;
       }
     }
   </style>
@@ -413,24 +381,23 @@
     <div class="header-controls"></div>
     <button class="info-button" onclick="toggleInfoPanel()">acerca de i</button>
   </div>
-
+  
   <div class="container">
     <div class="sidebar">
-      <div class="sidebar-header">
-        <h3>Panel de Control</h3>
+      <div class="sidebar-header">       
+        <h3>Panel de Control</h3>        
       </div>
       <div class="sidebar-content">
-        <div class="alert-simple">
+         <div class="alert-simple">
           ⚠️ <strong>Advertencia:</strong> La información presentada es de manera referencial y deberá asumirse con el
-          mayor cuidado y responsabilidad ya que la divulgación inadecuada de la misma está sujeta a acciones y
-          sanciones contempladas en
+          mayor cuidado y responsabilidad ya que la divulgación inadecuada de la misma está sujeta a acciones y sanciones contempladas en
           la LOGIRD.
         </div>
-
+        
         <!-- Filtros -->
         <div class="filter-controls">
           <h4>Filtros</h4>
-
+          
           <!-- Filtro por Prioridad -->
           <div class="filter-group">
             <label for="priorityFilter">Prioridad:</label>
@@ -441,7 +408,7 @@
               <option value="BAJA">Baja</option>
             </select>
           </div>
-
+          
           <!-- Filtro por Estado -->
           <div class="filter-group">
             <label for="statusFilter">Estado:</label>
@@ -451,7 +418,7 @@
               <option value="PENDIENTE">Pendiente</option>
             </select>
           </div>
-
+          
           <!-- Filtro por Rango de Fechas -->
           <div class="filter-group">
             <label>Rango de fechas:</label>
@@ -461,7 +428,7 @@
               <input type="date" id="endDate" class="form-control" placeholder="Fecha fin">
             </div>
           </div>
-
+          
           <button id="applyFilters" class="btn-filter">Aplicar Filtros</button>
           <button id="resetFilters" class="btn-filter btn-reset">Restablecer</button>
         </div>
@@ -516,57 +483,46 @@
 
     <div class="map-container">
       <div id="map"></div>
-      <div class="legend" id="legend">
-        <button class="legend-toggle" onclick="toggleLegend()">☰ Leyenda</button>
-        <div class="legend-content" id="legendContent">
-          <div class="legend-section">
-            <div class="legend-title">Prioridad</div>
-            <div class="legend-item">
-              <div class="legend-icon" style="background-color: #dc3545;"></div>
-              <span>Prioridad Alta</span>
+      <div class="legend">
+        <div class="legend-section">
+          <div class="legend-title">Prioridad</div>
+          <div class="legend-item">
+            <div class="legend-icon" style="background-color: #dc3545; width: 16px; height: 16px; border-radius: 50%;">
             </div>
-            <div class="legend-item">
-              <div class="legend-icon" style="background-color: #ffc107;"></div>
-              <span>Prioridad Media</span>
-            </div>
-            <div class="legend-item">
-              <div class="legend-icon" style="background-color: #28a745;"></div>
-              <span>Prioridad Baja</span>
-            </div>
-            <div class="legend-item">
-              <div class="legend-icon" style="background-color: #007bff;"></div>
-              <span>Sin prioridad</span>
-            </div>
+            <span>Prioridad Alta</span>
           </div>
-          <div class="legend-section">
-            <div class="legend-title">Área de influencia</div>
-            <div class="legend-item">
-              <div class="legend-icon" style="background-color: rgb(230, 226, 9); border: 2px solid #ffc400;"></div>
-              <span>Movimientos de ladera</span>
+          <div class="legend-item">
+            <div class="legend-icon" style="background-color: #ffc107; width: 16px; height: 16px; border-radius: 50%;">
             </div>
-            <div class="legend-item">
-              <div class="legend-icon" style="background-color: rgba(4, 0, 255, 0.788); border: 2px solid #2600ff;">
-              </div>
-              <span>Inundaciones</span>
+            <span>Prioridad Media</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-icon" style="background-color: #28a745; width: 16px; height: 16px; border-radius: 50%;">
             </div>
+            <span>Prioridad Baja</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-icon" style="background-color: #007bff; width: 16px; height: 16px; border-radius: 50%;">
+            </div>
+            <span>Sin prioridad</span>
+          </div>
+        </div>
+        <div class="legend-section">
+          <div class="legend-title">Área de influencia</div>
+          <div class="legend-item">
+            <div class="legend-icon"
+              style="background-color: rgba(255, 0, 0, 0.3); border: 2px solid #ff0000; width: 16px; height: 16px;">
+            </div>
+            <span>Influencia</span>
           </div>
         </div>
       </div>
     </div>
   </div>
-  <footer>
-            © 2025 Municipio de Loja - Coordinación de gestión de riesgos | Ing Millan paul Alverca Gaona | Ecuador-
-            Loja |
-            <a href="https://www.loja.gob.ec/"
-                style="color: var(--color-secondary); text-decoration: none;">Visita nuestro sitio web</a>
-        </footer>
-  </div>
-
+  
   <!-- Leaflet JS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
-  <!--PDF--><!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-
+  <!--PDF-->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="app.js"></script>
