@@ -379,7 +379,35 @@ async function cargarDatos() {
     status.className = 'status error';
   }
 }
+//crear punto
 
+function createLocationCircle(lat, lng, radius, color = '#ff0000', fillOpacity = 0.2) {
+  // Círculo geográfico
+  const circle = L.circle([lat, lng], {
+    radius: radius,
+    color: color,
+    fillColor: color,
+    fillOpacity: fillOpacity,
+    weight: 2
+  });
+
+  // Ícono animado de pulso
+  const pulseIcon = L.divIcon({
+    className: 'pulse-marker',
+    html: `<div class="pulse-circle" style="width: 30px; height: 30px; background: ${color};"></div>`,
+    iconSize: [30, 30],
+    iconAnchor: [15, 15]
+  });
+
+  const pulseMarker = L.marker([lat, lng], {
+    icon: pulseIcon,
+    interactive: false, // para que no interfiera con clics
+    zIndexOffset: 1000
+  });
+
+  // Devolver ambos en un grupo
+  return L.layerGroup([circle, pulseMarker]);
+}
 function mostrarPuntosEnMapa() {
   // Limpiar marcadores anteriores
   markersLayer.clearLayers();
@@ -411,6 +439,21 @@ function mostrarPuntosEnMapa() {
     marker.bindPopup(popupContent);
     // Agregar marcador a la capa
     markersLayer.addLayer(marker);
+// Verificar condiciones para mostrar círculo de localización
+    
+    const radio = parseFloat(item.radio || item.RADIO || 0);
+   
+    if (item.PRIORIDAD === 'Alta' && item.radio > 0 && item.ESTADO === 'Pendiente') {
+      console.log("hasta aqui bien")
+      // Crear círculo de localización con radio en metros
+      const circle = createLocationCircle(lat, lng, radio, PRIORITY_COLORS['ALTA']);
+      circle.addTo(markersLayer);
+      
+      // Agregar información al popup sobre el radio
+      marker.bindPopup(popupContent + 
+        `<p><span class="label">Radio de afectación:</span> ${radio} metros</p>`);
+    }
+
   });
 }
 
@@ -597,7 +640,7 @@ function crearPopupContentPuntos(item, lat, lng) {
   const titulo = item.EVENTO || item.id || 'Registro de Punto';
   content += `<h4>${titulo} - ${item.id} </h4>`;
   content += `<img src="${item.ANEX_FOT}"
-  style="max-width: 100%; max-height: 300px; height: auto; display: block; margin: 0 auto;"
+  style="max-width: 100%; max-height: 200px; height: auto; display: block; margin: 0 auto;"
    alt=${item.descripcion}>`;
   // Mostrar campos principales
   const camposPrincipales = ['FECHA', 'ANIO', 'SECTOR_BASICO', 'AFECTACION', 'PRIORIDAD'];
@@ -635,45 +678,18 @@ function crearPopupContentPuntos(item, lat, lng) {
 }
 
 // Función generarPDF actualizada:
-async function generarPDF(titulo, lat, lng, itemStr) {
+function generarPDF(titulo, lat, lng, itemStr) {
   try {
-    // Validación inicial de parámetros
-    if (!titulo || !lat || !lng || !itemStr) {
-      throw new Error("Faltan parámetros requeridos");
-    }
-
     const item = JSON.parse(decodeURIComponent(itemStr));
     const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
 
-    // Crear documento con orientación vertical y unidades en mm
-    const doc = new jsPDF({
-      orientation: "portrait",
-      unit: "mm"
-    });
-
-    // Configuración de márgenes y dimensiones
+    // Configuración de márgenes
     const leftMargin = 15;
     const rightMargin = 15;
     const topMargin = 20;
-    const bottomMargin = 25; // Espacio adicional para firmas
     const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
     const maxWidth = pageWidth - leftMargin - rightMargin;
-
-    // SOLUCIÓN PARA EL FONDO - Versión mejorada
-    try {
-      // Convertir la imagen a Base64 (solución más confiable)
-      const base64Image = await imageToBase64('./fondo1.png');
-      
-      if (base64Image) {
-        // Agregar imagen de fondo que cubra toda la página
-        doc.addImage(base64Image, 'PNG', 0, 0, pageWidth, pageHeight, undefined, 'FAST');
-        // Ajustar opacidad para que el contenido sea legible
-        doc.setGState(new doc.GState({ opacity: 0.1 }));
-      }
-    } catch (e) {
-      console.warn("No se pudo cargar la imagen de fondo:", e);
-    }
 
     // Fecha actual de descarga
     const fechaDescarga = new Date().toLocaleDateString('es-ES', {
@@ -687,195 +703,94 @@ async function generarPDF(titulo, lat, lng, itemStr) {
     // Configuración inicial del documento
     doc.setFont("helvetica", "bold");
     doc.setFontSize(16);
-    doc.setTextColor(40, 40, 40);
-    doc.text(`Reporte de afectación ${item.id}`, pageWidth / 2, topMargin, { align: 'center' });
+    doc.text(`Reporte: ${titulo}`, pageWidth / 2, topMargin, { align: 'center' });
 
-    // Fecha de descarga
+    // Fecha de descarga (más pequeña y en esquina superior derecha)
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
     doc.text(`Generado: ${fechaDescarga}`, pageWidth - rightMargin, topMargin, { align: 'right' });
 
-    let yPosition = topMargin + 15;
+    let yPosition = topMargin + 20;
 
     // Línea divisoria
-    doc.setDrawColor(100, 100, 100);
-    doc.setLineWidth(0.5);
+    doc.setDrawColor(200, 200, 200);
     doc.line(leftMargin, yPosition, pageWidth - rightMargin, yPosition);
     yPosition += 10;
 
-    // Agregar imagen adjunta (si existe)
+    // Agregar imagen (si existe)
     if (item.ANEX_FOT) {
-      try {
-        const imgWidth = pageWidth - leftMargin - rightMargin;
-        const imgHeight = 60; // Altura fija para mantener proporción
+      // Ajustar tamaño de la imagen para que quepa en el ancho con márgenes
+      const imgWidth = pageWidth - leftMargin - rightMargin;
+      const imgHeight = 100; // Altura fija o podrías calcular proporción
 
-        // Marco para la imagen
-        doc.setDrawColor(200, 200, 200);
-        doc.setFillColor(240, 240, 240);
-        doc.rect(leftMargin, yPosition, imgWidth, imgHeight, 'FD');
+      doc.addImage(item.ANEX_FOT, 'JPEG', leftMargin, yPosition, imgWidth, imgHeight);
+      yPosition += imgHeight + 10;
 
-        doc.addImage(item.ANEX_FOT, 'JPEG', leftMargin + 2, yPosition + 2, imgWidth - 4, imgHeight - 4);
-        yPosition += imgHeight + 10;
-
-        // Línea divisoria después de la imagen
-        doc.setDrawColor(100, 100, 100);
-        doc.line(leftMargin, yPosition - 5, pageWidth - rightMargin, yPosition - 5);
-        yPosition += 5;
-      } catch (e) {
-        console.error("Error al procesar imagen:", e);
-        yPosition += 10;
-      }
+      // Otra línea divisoria después de la imagen
+      doc.line(leftMargin, yPosition - 5, pageWidth - rightMargin, yPosition - 5);
+      yPosition += 5;
     }
 
-    // Función para agregar campo con formato
-    const addField = (label, value, isBold = false) => {
-      doc.setFont("helvetica", isBold ? "bold" : "normal");
-      doc.setTextColor(0, 0, 0); // Negro sólido para mejor legibilidad
-      doc.text(`${label}:`, leftMargin, yPosition);
-
-      if (typeof value === 'string' && value.length > 50) {
-        const lines = doc.splitTextToSize(value, maxWidth - 40);
-        doc.text(lines, leftMargin + 30, yPosition);
-        yPosition += Math.max(10, lines.length * 7);
-      } else {
-        doc.text(value || 'N/A', leftMargin + 30, yPosition);
-        yPosition += 10;
-      }
-    };
-
-    // Información principal
-    addField("Ubicación", `${lat.toFixed(6)}, ${lng.toFixed(6)}, ${item.PARROQUIA || ''}`, true);
-    addField("Evento", titulo, true);
-    addField("Afectación", item.afectacion || 'No especificado', true);
+    // Coordenadas
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text("Ubicación:", leftMargin, yPosition);
+    doc.setFont("helvetica", "normal");
+    doc.text(`${lat.toFixed(6)}, ${lng.toFixed(6)}`, leftMargin + 30, yPosition);
+    yPosition += 10;
 
     // Campos principales
-    const camposPrincipales = [
-      { key: 'FECHA', label: 'Fecha', format: v => new Date(v).toLocaleDateString('es-ES') },
-      { key: 'sector_barrio', label: 'Sector/Barrio' },
-      { key: 'afectación', label: 'Afectación' },
-      { key: 'PRIORIDAD', label: 'Prioridad', format: v => v ? `${v} (${v === 'A' ? 'Alta' : v === 'M' ? 'Media' : 'Baja'})` : 'No especificada' },
-      { key: 'descripcion', label: 'Descripción' }
-    ];
-
+    const camposPrincipales = ['FECHA', 'sector_barrio', 'afectación', 'PRIORIDAD', 'descripcion'];
     camposPrincipales.forEach(campo => {
-      if (item[campo.key]) {
-        const value = campo.format ? campo.format(item[campo.key]) : item[campo.key];
-        addField(campo.label, value, true);
+      if (item[campo]) {
+        let valor = item[campo];
+        if (campo === 'FECHA') {
+          valor = new Date(valor).toLocaleDateString('es-ES', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+          });
+        }
+
+        doc.setFont("helvetica", "bold");
+        doc.text(`${campo}:`, leftMargin, yPosition);
+        doc.setFont("helvetica", "normal");
+
+        // Dividir texto largo en múltiples líneas
+        const lines = doc.splitTextToSize(String(valor), maxWidth - 40);
+        doc.text(lines, leftMargin + 30, yPosition);
+        yPosition += Math.max(10, lines.length * 7);
       }
     });
+    doc.setFont("helvetica", "bold");
+    doc.text("atiende:", leftMargin, yPosition);
+    doc.setFont("helvetica", "normal");
+    doc.text(item.depen, leftMargin + 30, yPosition);
+    yPosition += 7;
 
-    // Dependencia responsable
-    if (item.depen) {
-      addField("Dependencia", item.depen, true);
-    }
-
-    // Acciones a desarrollar (formateadas por guiones)
+    // Acciones a desarrollar con manejo de texto largo
     if (item.accions) {
       doc.setFont("helvetica", "bold");
       doc.text("Acciones a desarrollar:", leftMargin, yPosition);
-      yPosition += 8;
-      
-      // Dividir por guiones y agregar viñetas
-      const acciones = item.accions.split('-').filter(a => a.trim() !== '');
+      yPosition += 7;
+
       doc.setFont("helvetica", "normal");
-      
-      acciones.forEach((accion, index) => {
-        const trimmed = accion.trim();
-        if (trimmed) {
-          const lines = doc.splitTextToSize(`• ${trimmed}`, maxWidth - 10);
-          doc.text(lines, leftMargin + 5, yPosition);
-          yPosition += lines.length * 6.5 + 2;
-        }
-      });
-      
-      yPosition += 10;
+      const accionesLines = doc.splitTextToSize(item.accions, maxWidth);
+      doc.text(accionesLines, leftMargin, yPosition);
+      yPosition += accionesLines.length * 7 + 10;
     }
-
-    // SECCIÓN DE FIRMAS MEJORADA
-    const signatureHeight = 40;
-    
-    // Control de paginación
-    if (yPosition + signatureHeight > pageHeight - bottomMargin) {
-      doc.addPage();
-      yPosition = topMargin;
-    }
-
-    // Línea divisoria antes de firmas
-    doc.setDrawColor(100, 100, 100);
-    doc.line(leftMargin, yPosition, pageWidth - rightMargin, yPosition);
-    yPosition += 10;
-
-    // Texto de firmas
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "bold");
-    doc.text("FIRMAS DE RESPONSABLES", pageWidth / 2, yPosition, { align: 'center' });
-    yPosition += 15;
-
-    // Espacio para firmas (2 columnas)
-    const signatureWidth = (pageWidth - leftMargin - rightMargin - 20) / 2;
-
-    // Firma 1 - Coordinación de Gestión de Riesgos
-    doc.setFontSize(9);
-    doc.setFont("helvetica", "bold");
-    doc.text("Responsable de la Coordinación", leftMargin, yPosition);
-    doc.setFont("helvetica", "normal");
-    doc.text("de Gestión de Riesgos", leftMargin, yPosition + 5);
-    doc.text("_________________________", leftMargin, yPosition + 20);
-    doc.text("Firma", leftMargin, yPosition + 30);
-
-    // Firma 2 - Responsable de Inspección
-    doc.setFont("helvetica", "bold");
-    doc.text("Responsable de la Inspección", leftMargin + signatureWidth + 15, yPosition);
-    doc.setFont("helvetica", "normal");
-    doc.text("_________________________", leftMargin + signatureWidth + 15, yPosition + 20);
-    doc.text("Firma", leftMargin + signatureWidth + 15, yPosition + 30);
 
     // Pie de página
-    doc.setFontSize(8);
-    doc.setTextColor(100, 100, 100);
-    doc.text("Reporte generado automáticamente - " + fechaDescarga, 
-             pageWidth / 2, pageHeight - 10, { align: 'center' });
+    doc.setFontSize(10);
+    doc.setTextColor(150, 150, 150);
+    doc.text("Reporte generado automáticamente", pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: 'center' });
 
     // Guardar el PDF
-    const fileName = `reporte_${titulo.replace(/[^a-z0-9]/gi, '_')}_${fechaDescarga.replace(/[/,: ]/g, '-')}.pdf`;
-    doc.save(fileName);
-
-    return fileName;
-
+    doc.save(`reporte_${titulo.replace(/[^a-z0-9]/gi, '_')}_${fechaDescarga.replace(/[/,: ]/g, '-')}.pdf`);
   } catch (e) {
     console.error("Error al generar PDF:", e);
-    alert("Ocurrió un error al generar el reporte: " + e.message);
-    return null;
+    alert("Ocurrió un error al generar el reporte");
   }
-}
-
-// Función auxiliar para convertir imagen a Base64
-function imageToBase64(url) {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.crossOrigin = 'Anonymous';
-    img.src = url;
-    
-    img.onload = function() {
-      try {
-        const canvas = document.createElement('canvas');
-        canvas.width = img.width;
-        canvas.height = img.height;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0);
-        const dataURL = canvas.toDataURL('image/png');
-        resolve(dataURL);
-      } catch (e) {
-        console.warn("Error al convertir imagen a Base64:", e);
-        resolve(null);
-      }
-    };
-    
-    img.onerror = function() {
-      console.warn("No se pudo cargar la imagen para convertir a Base64");
-      resolve(null);
-    };
-  });
 }
 
 // Función para escapar HTML (seguridad)
